@@ -1,0 +1,59 @@
+<table>
+   <tbody>
+     <tr>
+       <td valign="Bottom" colspan="2">
+<b>Description:</b><br>
+       </td>
+       <td valign="Bottom" colspan="2">
+3B42RT (untitled)<br>
+       </td>
+     </tr>
+     <tr>
+       <td valign="Bottom" colspan="2">
+<b>Documentation:</b>
+       </td>
+       <td valign="Bottom" colspan="2">(none provided)</a>
+       <br>
+       </td>
+     </tr>
+     <tr>
+       <td valign="Bottom" colspan="2"><b>Longitude:</b></td>
+       <td>       
+      <div align="Center">-18.87500000000&deg;E to 54.87500000000&deg;E</div>
+       </td>
+       <td>&nbsp;(296 points, avg. res. 0.25&deg;)
+       </td>
+     </tr>
+     <tr>
+       <td valign="Bottom" colspan="2"><b>Latitude:</b></td>
+       <td>       
+      <div align="Center">-34.87500000000&deg;N to 37.87500000000&deg;N</div>
+       </td>
+       <td>&nbsp;(292 points, avg. res. 0.25&deg;)
+       </td>
+     </tr>
+     <tr>
+       <td valign="Bottom" colspan="2"><b>Time:</b></td>
+       <td>       
+      <div align="Center">00Z01MAR2000 to 00Z16JUL2027</div>
+       </td>
+       <td>&nbsp;(9999 points, avg. res. 1.0 days)
+       </td>
+     </tr>
+     <tr>
+       <td valign="Bottom" colspan="2"><b>Variables:</b><br>
+       </td>
+       <td colspan="4"><b>(total of 1)</b><br>
+       </td>
+     </tr>
+     <tr>
+       <td valign="Bottom">&nbsp;<br>
+       </td>
+       <td><b>prec</b><br>
+       </td>
+       <td colspan="4">daily total precip (mm) <br>
+       </td>
+     </tr>
+   
+  </tbody> 
+</table>

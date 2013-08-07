@@ -1,0 +1,8 @@
+#
+# Script to build upload client
+#
+# Copyright (C) 2000-2004 Institute for Global Environment and Society /
+#                        Center for Ocean-Land-Atmosphere Studies
+# Author: Joe Wielgosz <joew@cola.iges.org>
+#
+javac grads/client/*.java

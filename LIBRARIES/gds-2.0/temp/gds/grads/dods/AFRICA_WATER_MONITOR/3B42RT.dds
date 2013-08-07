@@ -1,0 +1,13 @@
+Dataset {
+  Grid {
+    ARRAY:
+      Float32 prec[time = 9999][lat = 292][lon = 296];
+    MAPS:
+      Float64 time[time = 9999];
+      Float64 lat[lat = 292];
+      Float64 lon[lon = 296];
+  } prec;
+  Float64 time[time = 9999];
+  Float64 lat[lat = 292];
+  Float64 lon[lon = 296];
+} AFRICA_WATER_MONITOR/3B42RT;

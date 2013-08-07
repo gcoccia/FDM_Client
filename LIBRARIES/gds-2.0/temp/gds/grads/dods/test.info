@@ -1,0 +1,59 @@
+<table>
+   <tbody>
+     <tr>
+       <td valign="Bottom" colspan="2">
+<b>Description:</b><br>
+       </td>
+       <td valign="Bottom" colspan="2">
+Real-Time Three Hourly TRMM and Other Satellite Rainfall (3B42RT)<br>
+       </td>
+     </tr>
+     <tr>
+       <td valign="Bottom" colspan="2">
+<b>Documentation:</b>
+       </td>
+       <td valign="Bottom" colspan="2">(none provided)</a>
+       <br>
+       </td>
+     </tr>
+     <tr>
+       <td valign="Bottom" colspan="2"><b>Longitude:</b></td>
+       <td>       
+      <div align="Center">0.12500000000&deg;E to 359.87500000000&deg;E</div>
+       </td>
+       <td>&nbsp;(1440 points, avg. res. 0.25&deg;)
+       </td>
+     </tr>
+     <tr>
+       <td valign="Bottom" colspan="2"><b>Latitude:</b></td>
+       <td>       
+      <div align="Center">-59.87500000000&deg;N to 59.87500000000&deg;N</div>
+       </td>
+       <td>&nbsp;(480 points, avg. res. 0.25&deg;)
+       </td>
+     </tr>
+     <tr>
+       <td valign="Bottom" colspan="2"><b>Time:</b></td>
+       <td>       
+      <div align="Center">00Z12JUN2013 to 00Z13JUN2013</div>
+       </td>
+       <td>&nbsp;(9 points, avg. res. 0.125 days)
+       </td>
+     </tr>
+     <tr>
+       <td valign="Bottom" colspan="2"><b>Variables:</b><br>
+       </td>
+       <td colspan="4"><b>(total of 1)</b><br>
+       </td>
+     </tr>
+     <tr>
+       <td valign="Bottom">&nbsp;<br>
+       </td>
+       <td><b>p</b><br>
+       </td>
+       <td colspan="4">precipitation (mm/hr) <br>
+       </td>
+     </tr>
+   
+  </tbody> 
+</table>

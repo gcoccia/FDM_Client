@@ -1,0 +1,226 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>shfilt.gex - GrADS Extension Library for Spherical Harmonic Filtering</title>
+<link rel="stylesheet" href="/pod.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:_www@b70.apple.com" />
+</head>
+
+<body>
+<table border="0" width="100%" cellspacing="0" cellpadding="3">
+<tr><td class="block" valign="middle">
+<big><strong><span class="block">&nbsp;shfilt.gex - GrADS Extension Library for Spherical Harmonic Filtering</span></strong></big>
+</td></tr>
+</table>
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<ul>
+
+		<ul>
+
+			<li><a href="#grads_functions_">GrADS Functions:</a></li>
+			<li><a href="#grads_script_">GrADS Script:</a></li>
+		</ul>
+
+	</ul>
+
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#examples">EXAMPLES</a></li>
+	<ul>
+
+		<li><a href="#filtering_surface_pressure_">Filtering surface pressure.</a></li>
+		<li><a href="#power_spectra_of_surface_temperature">Power spectra of surface temperature</a></li>
+	</ul>
+
+	<li><a href="#functions_provided">FUNCTIONS PROVIDED</a></li>
+	<ul>
+
+		<li><a href="#sh_filt_expr_n1__n2__"><strong>sh_filt</strong>(<em>EXPR,N1[,N2]</em>)</a></li>
+		<li><a href="#sh_power_expr_"><strong>sh_power</strong>(<em>EXPR</em>)</a></li>
+	</ul>
+
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#author">AUTHOR</a></li>
+	<li><a href="#copyright">COPYRIGHT</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<hr />
+<h1><a name="name">NAME</a></h1>
+<p>shfilt.gex - GrADS Extension Library for Spherical Harmonic Filtering</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>
+</p>
+<h3><a name="grads_functions_">GrADS Functions:</a></h3>
+<dl>
+<dt>
+<dd>
+<p>display <strong>sh_filt</strong>(<em>EXPR,N1[,N2]</em>) - Spherical Harmonic Filter</p>
+</dd>
+</li>
+<dt>
+<dd>
+<p>display <strong>sh_power</strong>(<em>EXPR</em>) - Spherical Harmonic Power Spectra</p>
+</dd>
+</li>
+</dl>
+<p>
+</p>
+<h3><a name="grads_script_">GrADS Script:</a></h3>
+<dl>
+<dt>
+<dd>
+<p>run <strong>power.gs</strong> <em>EXPR</em> N - Plot Spherical Harmonic Power Spectra</p>
+</dd>
+</li>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>This library provides GrADS extensions (<em>gex</em>) with functions for
+spherical harmonic filtering and calculation of spherical harmonic
+power spectra. The numerical calculations rely on the excellent
+<em>Spherepak</em> library by John C. Adams and Paul N. Swarztrauber.
+Quoting from the Speherepak website:</p>
+<p>SPHEREPACK 3.1 is a collection of FORTRAN programs that facilitates
+computer modeling of geophysical processes. The package contains
+programs for computing certain common differential operators including
+divergence, vorticity, gradients, and the Laplacian of both scalar and
+vector functions. Programs are also available for inverting these
+operators. For example, given divergence and vorticity, the package
+can be used to compute the velocity components. The Laplacian can also
+be inverted and therefore the package can be used to solve both the
+scalar and vector Poisson equations. Its use in model development is
+demonstrated by a sample program that solves the time-dependent
+non-linear shallow-water equations. Accurate solutions are obtained
+via the spectral method that uses both scalar and vector spherical
+harmonic transforms that are available to the user. The package also
+contains utility programs for computing the associated Legendre
+functions, Gauss points and weights, and multiple fast Fourier
+transforms. Programs are provided for both equally-spaced and Gauss
+distributed latitudinal points as well as programs that transfer data
+between these grids.</p>
+<p>The current GrADS extensions only begin to explore the capabilties of
+Spherepak. The function <strong>sh_filt</strong> takes a scalar global 2D field on
+the sphere, expands it in terms of spherical harmonics, and
+reconstructs it includng only (total) wavenumbers in the range [N1,N2]
+specified by the user. Additionally, function <strong>sh_power</strong> returns the
+power spectra in terms of total waenumbers. This is accomplished by
+returning a 1D array (fixed longitude, varying latitude) with the
+spectra as a function of total wavenumber. The GrADS script
+<strong>power.gs</strong> is useful to plot this power spectra and should be used in
+place of the function <strong>sh_power()</strong>.</p>
+<p>
+</p>
+<hr />
+<h1><a name="examples">EXAMPLES</a></h1>
+<p>
+</p>
+<h2><a name="filtering_surface_pressure_">Filtering surface pressure.</a></h2>
+<p>The example expands the surface pressure field in terms of spherical
+harmonics and reconstructs it retaining only 10 wavenumber.</p>
+<pre>
+ open model
+ set gxout shaded
+ d sh_filt(ps,10)</pre>
+<p>
+</p>
+<h2><a name="power_spectra_of_surface_temperature">Power spectra of surface temperature</a></h2>
+<p>The example expands the surface temperature field in terms of
+spherical harmonics and plots it as function of the 32 first total
+numbers.</p>
+<pre>
+ run power.gs ts 32</pre>
+<p>
+</p>
+<hr />
+<h1><a name="functions_provided">FUNCTIONS PROVIDED</a></h1>
+<p>
+</p>
+<h2><a name="sh_filt_expr_n1__n2__"><strong>sh_filt</strong>(<em>EXPR,N1[,N2]</em>)</a></h2>
+<p>This function takes a scalar global 2D field on the sphere, expands it
+in terms of spherical harmonics, and reconstructs it includng only
+(total) wavenumbers in the range [N1,N2] specified by the user.</p>
+<dl>
+<dt><strong><a name="item_expr"><em>EXPR</em></a></strong>
+
+<dd>
+<p>GrADS expressions with scalar expression to be filtered.</p>
+</dd>
+</li>
+<dt><strong><a name="item_n1_5b_2cn2_5d"><em>N1[,N2]</em></a></strong>
+
+<dd>
+<p>When both <em>N1</em> and <em>N2</em> are specified, only spherical harmonics with
+total wavenumber in the range <em>[N1,N2]</em> will be retained. When only
+<em>N1</em> is specified, only spherical harmonics with total wavenumber in
+the range <em>[1,N1]</em> will be retained.</p>
+</dd>
+</dl>
+<p>
+</p>
+<h2><a name="sh_power_expr_"><strong>sh_power</strong>(<em>EXPR</em>)</a></h2>
+<p>This function returns the power spectra in terms of total
+waenumbers. This is accomplished by returning a 1D array (fixed
+longitude, varying latitude) with the spectra as a function of total
+wavenumber. The GrADS script <strong>power.gs</strong> is useful to plot this power
+spectra and should be used in place of the function <strong>sh_power()</strong>.</p>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<ul>
+<li>
+<p><a href="http://opengrads.org/">http://opengrads.org/</a> - OpenGrADS Home Page</p>
+</li>
+<li>
+<p><a href="http://cookbooks.opengrads.org/index.php?title=Main_Page">http://cookbooks.opengrads.org/index.php</a> -
+OpenGrADS Cookbooks</p>
+<pre>
+ =item *</pre>
+<p><a href="http://www.scd.ucar.edu/css/software/spherepack">http://www.scd.ucar.edu/css/software/spherepack</a> - Spherepack Home Page</p>
+</li>
+<li>
+<p><a href="http://opengrads.org/wiki/index.php?title=User_Defined_Extensions">http://opengrads.org/wiki/index.php</a> - OpenGrADS User Defined Extensions</p>
+</li>
+<li>
+<p><a href="http://www.iges.org/grads/">http://www.iges.org/grads/</a> - Official GrADS Home Page</p>
+</li>
+</ul>
+<p>
+</p>
+<hr />
+<h1><a name="author">AUTHOR</a></h1>
+<p>Arlindo da Silva (<a href="mailto:dasilva@opengrads.org">dasilva@opengrads.org</a>)</p>
+<p>
+</p>
+<hr />
+<h1><a name="copyright">COPYRIGHT</a></h1>
+<p>Copyright (C) 2008-2009 Arlindo da Silva; All Rights Reserved.</p>
+<p>This is free software; see the source for copying conditions.  There is
+NO  warranty;  not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR
+PURPOSE.</p>
+<table border="0" width="100%" cellspacing="0" cellpadding="3">
+<tr><td class="block" valign="middle">
+<big><strong><span class="block">&nbsp;shfilt.gex - GrADS Extension Library for Spherical Harmonic Filtering</span></strong></big>
+</td></tr>
+</table>
+
+</body>
+
+</html>

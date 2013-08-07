@@ -1,0 +1,232 @@
+# 1 "shape.c"
+# 1 "<built-in>"
+# 1 "<command line>"
+# 1 "shape.c"
+# 58 "shape.c"
+=pod
+
+=head1 NAME
+
+shape - GrADS Extensions for Shapefile support
+
+=head1 SYNOPSIS
+
+=over 2
+
+B<shp_polyf> I<SHAPEFILE> [I<OBJECT>]
+
+B<shp_lines> I<SHAPEFILE> [I<OBJECT>]
+
+B<shp_print> I<SHAPEFILE>
+
+=back
+
+=head1 DESCRIPTION
+
+This library of GrADS extensions provides commands for the display and output
+of shapefiles. Quoting from the C<Shapefile C Library> documentation by Frank
+Warmerdam:
+
+=over 2
+
+The Shapefile format is a new working and interchange format promulagated by
+ESRI (http:
+is apparently the only file format that can be edited in ARCView 2/3, and
+can also be exported and imported in Arc/Info.
+An excellent white paper on the shapefile format is available from ESRI:
+
+        http:
+
+The file format actually consists of three files.
+
+ XXX.shp - holds the actual vertices.
+ XXX.shx - hold index data pointing to the structures in XXX.shp
+ XXX.dbf - holds the attributes in xBase (dBase) format.
+
+=back
+
+=head1 COMMANDS PROVIDED
+
+=head2 B<shp_polyf> I<SHAPEFILE> [I<OBJECT>]
+
+For each polygon object defined in I<SHAPEFILE>, a filled polygon is
+plotted as overlay on GrADS plots using the current line attributes.
+Optionally, one can specify a particular I<OBJECT> to plot.
+
+=head2 B<shp_lines> I<SHAPEFILE> [I<OBJECT>]
+
+Each object contained in I<SHAPEFILE> is plotted as a continous line
+joining vertexes as overlay on GrADS plots using the current line
+attributes. Optionally, one can specify a particular I<OBJECT> to
+plot.
+
+=head2 B<shp_print> I<SHAPEFILE>
+
+This function has NOT been implemented yet.
+
+=head1 OBTAINING SHAPEFILES
+
+Here is a very partial list of free (as in beer) shapefiles, as well
+for a DVD that you can buy. We do not support or endorse these
+products, we list them here for reference only.
+
+=head2 Suggested Installation Procedure
+
+We recommend that you install each triplet
+B<(XXX.shp,XXX.shx,XXX.dbf)> of files in your GrADS data directory
+(GADDIR), along with the other font and map databases. This way you
+will be able to refer to them without entering the full pathname.
+
+=head2 ESRI First Level World Administrative Boundaries 1998
+
+This shapefile contains the political boundaries for each country, and
+states/provinces within each country as of 1998. The data is freely
+available from:
+
+ http:
+
+=head2 World Map for APRS
+
+This shapefile dataset is based upon a free map published by
+TerraSpace, Russia as referenced by Geocommunity. Antartica's data
+came from the Digital Chart of the World and was reprojected into
+NAD27 to agree with the rest of the world.
+
+   http:
+
+=head2 GSHHS - A Global Self-consistent, Hierarchical, High-resolution Shoreline Database
+
+GSHHS contain contains shapefiles of varying complexity:
+
+=over 8
+
+=item gshhs_land
+
+contains the basic coastline shapefile
+
+=item gshhs_lake
+
+contains the shapefile of lakes within land
+
+=item gshhs_isl
+
+contains the shapefile of islands within lakes
+
+=item gshhs_pond
+
+contains the shapefile of ponds within islands within lakes
+
+=back
+
+The data is freely available from NOAA:
+
+   http:
+
+=head2 FAO GeoNetwork
+
+The GeoNetwork opensource allows to easily share geographically
+referenced thematic information between different FAO Units, other UN
+Agencies, NGO`s and other institutions. You can find more information here:
+
+   http:
+
+For example, if you search for I<Administrative Boundaries shapefile>
+in this site you get a list of administrative boundaries for many
+countries.
+
+=head2 American Geological Institute Global GIS DVD
+
+This DVD is a product of an agreement between the U.S. Geological Survey
+(USGS) and The American Geological Institute (AGI) for making the USGS
+Global Geographic Information System (GIS) database readily available
+to educators and the general public in the form of a DVD based world
+atlas. Quoting from the AGI website:
+
+   The USGS Global GIS database contains a wealth of USGS and other
+   public domain data, including global coverages of elevation,
+   landcover, seismicity, and resources of minerals and energy at a
+   nominal scale of 1:1 million
+
+Unfortunately, this DVD is not free and carries a restrictive
+license. You can obtain additional information here:
+
+   http:
+
+=head2 If you know of another good source of shapefiles...
+
+Please drop us a note.
+
+=head1 EXAMPLES
+
+For trying these examples you will need to download the freely
+available ESRI First Level World Administrative Boundaries 1998 (see
+OBTAINING SHAPEFILES above). Place the files
+
+   admin98.dbf
+   admin98.shp
+   admin98.shx
+
+either in your local directory or in your GrADS data directory
+C<GADDIR> (recommended.)
+
+=head2 Display Administrative Boundaries
+
+Start by disabling the map drawing by GrADS
+
+   ga-> set mpdraw off
+
+Then display something and add a new map:
+
+   ga-> d ts
+   ga-> shp_lines admin98
+
+=head2 Display a Solid Basemap
+
+Similarly,
+
+   ga-> d ts
+   ga-> shp_polyf admin98
+
+=head2 Changing the color of the map
+
+You can use the C<set line> command of GrADS to change the color, thickness and
+line style of the shapefile being drawn:
+
+   ga-> set line 9
+   ga-> shp_lines admin98
+
+will plot the map in magenta. See the GrADS documentation for more
+information.
+
+
+=head1 BUGS
+
+Only shapefiles having longitude/latitude coordinates are
+supported. Shapefiles in UTM coordinates cannot yet be read by this
+extension. The work around is to convert your shapefile to lat/lon
+using an utility such as C<ogr2ogr> that comes with I<GDAL>:
+
+    http:
+
+=head1 CREDITS
+
+Graziano Giuliani wrote the first version of C<shp_polyf()> as a bult-in patch
+for GrADS v1.b4. Arlindo da Silva converted it to a GrADS extension and introduced
+C<shp_print()> based on his C<gxyat> utility; as of this writing
+C<shp_print()> is just a stub.
+
+The Shapefile C Library by Frank Warmerdam is extensively used for the
+manipulation of shapefiles.
+
+=head1 COPYRIGHT
+
+Copyright (c) 2007 Graziano Giuliani
+
+Copyright (c) 2007 Arlindo da Silva
+
+This is free software released under the GNU General Public
+License; see the source for copying conditions.
+There is NO warranty; not even for MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.
+
+=cut

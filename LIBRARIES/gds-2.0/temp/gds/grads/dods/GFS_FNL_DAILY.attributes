@@ -1,0 +1,40 @@
+No Descriptor Attributes for File 1 : Real-Time Three Hourly TRMM and Other Satellite Rainfall (3B42RT) 
+
+No Native Attributes for File 1 : Real-Time Three Hourly TRMM and Other Satellite Rainfall (3B42RT) 
+
+No Descriptor Attributes for File 1 :  
+
+Native Attributes for File 1 :  
+lon String units degrees_east
+lon String long_name Longitude
+lon Float64 res 0.25
+lat String units degrees_north
+lat String long_name Latitude
+lat Float64 res 0.25
+tmax Float32 _FillValue -99999
+tmax String long_name daily tmax (K)
+tmin Float32 _FillValue -99999
+tmin String long_name daily tmin (K)
+prec Float32 _FillValue -99999
+prec String long_name daily total precip (mm)
+wind Float32 _FillValue -99999
+wind String long_name daily mean wind speed (m/s)
+
+No Descriptor Attributes for File 1 :  
+
+Native Attributes for File 1 :  
+lon String units degrees_east
+lon String long_name Longitude
+lon Float64 res 0.25
+lat String units degrees_north
+lat String long_name Latitude
+lat Float64 res 0.25
+tmax Float32 _FillValue -99999
+tmax String long_name daily tmax (K)
+tmin Float32 _FillValue -99999
+tmin String long_name daily tmin (K)
+prec Float32 _FillValue -99999
+prec String long_name daily total precip (mm)
+wind Float32 _FillValue -99999
+wind String long_name daily mean wind speed (m/s)
+

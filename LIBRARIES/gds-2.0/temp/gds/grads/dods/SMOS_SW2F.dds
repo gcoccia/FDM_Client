@@ -1,0 +1,13 @@
+Dataset {
+  Grid {
+    ARRAY:
+      Float32 data[time = 9999][lat = 292][lon = 296];
+    MAPS:
+      Float64 time[time = 9999];
+      Float64 lat[lat = 292];
+      Float64 lon[lon = 296];
+  } data;
+  Float64 time[time = 9999];
+  Float64 lat[lat = 292];
+  Float64 lon[lon = 296];
+} SMOS_SW2F;

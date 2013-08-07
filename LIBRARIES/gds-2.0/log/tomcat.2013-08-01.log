@@ -1,0 +1,28 @@
+2013-08-01 15:52:42 StandardHost[localhost]: Removing web application at context path 
+2013-08-01 15:52:42 StandardHost[localhost]: Removing web application at context path /dods
+2013-08-01 15:52:42 StandardHost[localhost]: Removing web application at context path /doc
+2013-08-01 15:53:18 WebappLoader[/doc]: Deploying class repositories to work directory /home/freeze/water_monitor/African_Drought_Monitor/LIBRARIES/gds-2.0/tomcat4/work/Standalone/localhost/doc
+2013-08-01 15:53:18 ContextConfig[/doc]: Missing application web.xml, using defaults only
+2013-08-01 15:53:18 StandardManager[/doc]: Seeding random number generator class java.security.SecureRandom
+2013-08-01 15:53:18 StandardManager[/doc]: Seeding of random number generator has been completed
+2013-08-01 15:53:18 StandardWrapper[/doc:default]: Loading container servlet default
+2013-08-01 15:53:18 StandardWrapper[/doc:invoker]: Loading container servlet invoker
+2013-08-01 15:53:18 HostConfig[localhost]: Deploying web application directory ROOT
+2013-08-01 15:53:18 StandardHost[localhost]: Installing web application at context path  from URL file:/home/freeze/water_monitor/African_Drought_Monitor/LIBRARIES/gds-2.0/tomcat4/webapps/ROOT
+2013-08-01 15:53:18 WebappLoader[]: Deploying class repositories to work directory /home/freeze/water_monitor/African_Drought_Monitor/LIBRARIES/gds-2.0/tomcat4/work/Standalone/localhost/_
+2013-08-01 15:53:18 StandardManager[]: Seeding random number generator class java.security.SecureRandom
+2013-08-01 15:53:18 StandardManager[]: Seeding of random number generator has been completed
+2013-08-01 15:53:18 StandardWrapper[:default]: Loading container servlet default
+2013-08-01 15:53:18 StandardWrapper[:invoker]: Loading container servlet invoker
+2013-08-01 15:53:18 HostConfig[localhost]: Deploying web application directory dods
+2013-08-01 15:53:18 StandardHost[localhost]: Installing web application at context path /dods from URL file:/home/freeze/water_monitor/African_Drought_Monitor/LIBRARIES/gds-2.0/tomcat4/webapps/dods
+2013-08-01 15:53:18 WebappLoader[/dods]: Deploying class repositories to work directory /home/freeze/water_monitor/African_Drought_Monitor/LIBRARIES/gds-2.0/tomcat4/work/Standalone/localhost/dods
+2013-08-01 15:53:18 WebappLoader[/dods]: Deploy JAR /WEB-INF/lib/anagram.jar to /home/freeze/water_monitor/African_Drought_Monitor/LIBRARIES/gds-2.0/tomcat4/webapps/dods/WEB-INF/lib/anagram.jar
+2013-08-01 15:53:18 WebappLoader[/dods]: Deploy JAR /WEB-INF/lib/dods-1.1.7.jar to /home/freeze/water_monitor/African_Drought_Monitor/LIBRARIES/gds-2.0/tomcat4/webapps/dods/WEB-INF/lib/dods-1.1.7.jar
+2013-08-01 15:53:18 WebappLoader[/dods]: Deploy JAR /WEB-INF/lib/gds.jar to /home/freeze/water_monitor/African_Drought_Monitor/LIBRARIES/gds-2.0/tomcat4/webapps/dods/WEB-INF/lib/gds.jar
+2013-08-01 15:53:18 WebappLoader[/dods]: Deploy JAR /WEB-INF/lib/gnu-getopt-1.0.6.jar to /home/freeze/water_monitor/African_Drought_Monitor/LIBRARIES/gds-2.0/tomcat4/webapps/dods/WEB-INF/lib/gnu-getopt-1.0.6.jar
+2013-08-01 15:53:18 WebappLoader[/dods]: Deploy JAR /WEB-INF/lib/gnu-regexp-1.1.4.jar to /home/freeze/water_monitor/African_Drought_Monitor/LIBRARIES/gds-2.0/tomcat4/webapps/dods/WEB-INF/lib/gnu-regexp-1.1.4.jar
+2013-08-01 15:53:18 StandardManager[/dods]: Seeding random number generator class java.security.SecureRandom
+2013-08-01 15:53:18 StandardManager[/dods]: Seeding of random number generator has been completed
+2013-08-01 15:53:18 StandardWrapper[/dods:default]: Loading container servlet default
+2013-08-01 15:53:19 StandardWrapper[/dods:invoker]: Loading container servlet invoker

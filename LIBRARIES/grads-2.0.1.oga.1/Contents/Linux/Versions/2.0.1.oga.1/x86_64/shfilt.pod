@@ -1,0 +1,177 @@
+# 1 "shfilt.c"
+# 1 "<built-in>"
+# 1 "<command line>"
+# 1 "shfilt.c"
+# 418 "shfilt.c"
+=pod
+
+=head1 NAME
+
+shfilt.gex - GrADS Extension Library for Spherical Harmonic Filtering
+
+=head1 SYNOPSIS
+
+=head3 GrADS Functions:
+
+=over 4
+
+=item
+
+display B<sh_filt>(I<EXPR,N1[,N2]>) - Spherical Harmonic Filter
+
+=item
+
+display B<sh_power>(I<EXPR>) - Spherical Harmonic Power Spectra
+
+=back
+
+=head3 GrADS Script:
+
+=over 4
+
+=item
+
+run B<power.gs> I<EXPR> N - Plot Spherical Harmonic Power Spectra
+
+=back
+
+=head1 DESCRIPTION
+
+This library provides GrADS extensions (I<gex>) with functions for
+spherical harmonic filtering and calculation of spherical harmonic
+power spectra. The numerical calculations rely on the excellent
+I<Spherepak> library by John C. Adams and Paul N. Swarztrauber.
+Quoting from the Speherepak website:
+
+=over 4
+
+SPHEREPACK 3.1 is a collection of FORTRAN programs that facilitates
+computer modeling of geophysical processes. The package contains
+programs for computing certain common differential operators including
+divergence, vorticity, gradients, and the Laplacian of both scalar and
+vector functions. Programs are also available for inverting these
+operators. For example, given divergence and vorticity, the package
+can be used to compute the velocity components. The Laplacian can also
+be inverted and therefore the package can be used to solve both the
+scalar and vector Poisson equations. Its use in model development is
+demonstrated by a sample program that solves the time-dependent
+non-linear shallow-water equations. Accurate solutions are obtained
+via the spectral method that uses both scalar and vector spherical
+harmonic transforms that are available to the user. The package also
+contains utility programs for computing the associated Legendre
+functions, Gauss points and weights, and multiple fast Fourier
+transforms. Programs are provided for both equally-spaced and Gauss
+distributed latitudinal points as well as programs that transfer data
+between these grids.
+
+=back
+
+The current GrADS extensions only begin to explore the capabilties of
+Spherepak. The function B<sh_filt> takes a scalar global 2D field on
+the sphere, expands it in terms of spherical harmonics, and
+reconstructs it includng only (total) wavenumbers in the range [N1,N2]
+specified by the user. Additionally, function B<sh_power> returns the
+power spectra in terms of total waenumbers. This is accomplished by
+returning a 1D array (fixed longitude, varying latitude) with the
+spectra as a function of total wavenumber. The GrADS script
+B<power.gs> is useful to plot this power spectra and should be used in
+place of the function B<sh_power()>.
+
+=head1 EXAMPLES
+
+=head2 Filtering surface pressure.
+
+The example expands the surface pressure field in terms of spherical
+harmonics and reconstructs it retaining only 10 wavenumber.
+
+ open model
+ set gxout shaded
+ d sh_filt(ps,10)
+
+=head2 Power spectra of surface temperature
+
+The example expands the surface temperature field in terms of
+spherical harmonics and plots it as function of the 32 first total
+numbers.
+
+ run power.gs ts 32
+
+=head1 FUNCTIONS PROVIDED
+
+=head2 B<sh_filt>(I<EXPR,N1[,N2]>)
+
+=over 4
+
+This function takes a scalar global 2D field on the sphere, expands it
+in terms of spherical harmonics, and reconstructs it includng only
+(total) wavenumbers in the range [N1,N2] specified by the user.
+
+=over 8
+
+=item I<EXPR>
+
+GrADS expressions with scalar expression to be filtered.
+
+=item I<N1[,N2]>
+
+When both I<N1> and I<N2> are specified, only spherical harmonics with
+total wavenumber in the range I<[N1,N2]> will be retained. When only
+I<N1> is specified, only spherical harmonics with total wavenumber in
+the range I<[1,N1]> will be retained.
+
+=back
+
+=back
+
+=head2 B<sh_power>(I<EXPR>)
+
+=over 4
+
+This function returns the power spectra in terms of total
+waenumbers. This is accomplished by returning a 1D array (fixed
+longitude, varying latitude) with the spectra as a function of total
+wavenumber. The GrADS script B<power.gs> is useful to plot this power
+spectra and should be used in place of the function B<sh_power()>.
+
+=back
+
+=head1 SEE ALSO
+
+=over 4
+
+=item *
+
+L<http:
+
+=item *
+
+L<http:
+OpenGrADS Cookbooks
+
+ =item *
+
+L<http:
+
+=item *
+
+L<http:
+
+=item *
+
+L<http:
+
+=back
+
+=head1 AUTHOR
+
+Arlindo da Silva (dasilva@opengrads.org)
+
+=head1 COPYRIGHT
+
+Copyright (C) 2008-2009 Arlindo da Silva; All Rights Reserved.
+
+This is free software; see the source for copying conditions. There is
+NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR
+PURPOSE.
+
+=cut

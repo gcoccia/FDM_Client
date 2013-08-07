@@ -1,0 +1,184 @@
+No Descriptor Attributes for File 1 : Real-Time Three Hourly TRMM and Other Satellite Rainfall (3B42RT) 
+
+No Native Attributes for File 1 : Real-Time Three Hourly TRMM and Other Satellite Rainfall (3B42RT) 
+
+No Descriptor Attributes for File 1 :  
+
+Native Attributes for File 1 :  
+lon String units degrees_east
+lon String long_name Longitude
+lon Float64 res 0.25
+lat String units degrees_north
+lat String long_name Latitude
+lat Float64 res 0.25
+prec Float32 _FillValue -99999
+prec String long_name daily total precip (mm)
+
+No Descriptor Attributes for File 1 :  
+
+Native Attributes for File 1 :  
+lon String units degrees_east
+lon String long_name Longitude
+lon Float64 res 0.25
+lat String units degrees_north
+lat String long_name Latitude
+lat Float64 res 0.25
+prec Float32 _FillValue -99999
+prec String long_name daily total precip (mm)
+
+No Descriptor Attributes for File 1 :  
+
+Native Attributes for File 1 :  
+lon String units degrees_east
+lon String long_name Longitude
+lon Float64 res 0.25
+lat String units degrees_north
+lat String long_name Latitude
+lat Float64 res 0.25
+prec Float32 _FillValue -99999
+prec String long_name daily total precip (mm)
+
+No Descriptor Attributes for File 1 : data 
+
+Native Attributes for File 1 : data 
+lon String units degrees_east
+lon String long_name Longitude
+lon Float64 res 0.25
+lat String units degrees_north
+lat String long_name Latitude
+lat Float64 res 0.25
+prec Float32 _FillValue -99999
+prec String long_name daily total precip (mm)
+
+No Descriptor Attributes for File 1 :  
+
+Native Attributes for File 1 :  
+lon String units degrees_east
+lon String long_name Longitude
+lon Float64 res 0.25
+lat String units degrees_north
+lat String long_name Latitude
+lat Float64 res 0.25
+prec Float32 _FillValue -99999
+prec String long_name daily total precip (mm)
+
+No Descriptor Attributes for File 1 :  
+
+Native Attributes for File 1 :  
+lon String units degrees_east
+lon String long_name Longitude
+lon Float64 res 0.25
+lat String units degrees_north
+lat String long_name Latitude
+lat Float64 res 0.25
+prec Float32 _FillValue -99999
+prec String long_name daily total precip (mm)
+
+No Descriptor Attributes for File 1 :  
+
+Native Attributes for File 1 :  
+lon String units degrees_east
+lon String long_name Longitude
+lon Float64 res 0.25
+lat String units degrees_north
+lat String long_name Latitude
+lat Float64 res 0.25
+prec Float32 _FillValue -99999
+prec String long_name daily total precip (mm)
+
+No Descriptor Attributes for File 1 :  
+
+Native Attributes for File 1 :  
+lon String units degrees_east
+lon String long_name Longitude
+lon Float64 res 0.25
+lat String units degrees_north
+lat String long_name Latitude
+lat Float64 res 0.25
+prec Float32 _FillValue -99999
+prec String long_name daily total precip (mm)
+
+No Descriptor Attributes for File 1 :  
+
+Native Attributes for File 1 :  
+lon String units degrees_east
+lon String long_name Longitude
+lon Float64 res 0.25
+lat String units degrees_north
+lat String long_name Latitude
+lat Float64 res 0.25
+prec Float32 _FillValue -99999
+prec String long_name daily total precip (mm)
+
+No Descriptor Attributes for File 1 :  
+
+Native Attributes for File 1 :  
+lon String units degrees_east
+lon String long_name Longitude
+lon Float64 res 0.25
+lat String units degrees_north
+lat String long_name Latitude
+lat Float64 res 0.25
+prec Float32 _FillValue -99999
+prec String long_name daily total precip (mm)
+
+No Descriptor Attributes for File 1 :  
+
+Native Attributes for File 1 :  
+lon String units degrees_east
+lon String long_name Longitude
+lon Float64 res 0.25
+lat String units degrees_north
+lat String long_name Latitude
+lat Float64 res 0.25
+prec Float32 _FillValue -99999
+prec String long_name daily total precip (mm)
+
+No Descriptor Attributes for File 1 :  
+
+Native Attributes for File 1 :  
+lon String units degrees_east
+lon String long_name Longitude
+lon Float64 res 0.25
+lat String units degrees_north
+lat String long_name Latitude
+lat Float64 res 0.25
+prec Float32 _FillValue -99999
+prec String long_name daily total precip (mm)
+
+No Descriptor Attributes for File 1 :  
+
+Native Attributes for File 1 :  
+lon String units degrees_east
+lon String long_name Longitude
+lon Float64 res 0.25
+lat String units degrees_north
+lat String long_name Latitude
+lat Float64 res 0.25
+prec Float32 _FillValue -99999
+prec String long_name daily total precip (mm)
+
+No Descriptor Attributes for File 1 :  
+
+Native Attributes for File 1 :  
+lon String units degrees_east
+lon String long_name Longitude
+lon Float64 res 0.25
+lat String units degrees_north
+lat String long_name Latitude
+lat Float64 res 0.25
+prec Float32 _FillValue -99999
+prec String long_name daily total precip (mm)
+
+No Descriptor Attributes for File 1 :  
+
+Native Attributes for File 1 :  
+lon String units degrees_east
+lon String long_name Longitude
+lon Float64 res 0.25
+lat String units degrees_north
+lat String long_name Latitude
+lat Float64 res 0.25
+prec Float32 _FillValue -99999
+prec String long_name daily total precip (mm)
+

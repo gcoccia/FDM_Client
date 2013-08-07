@@ -1,0 +1,13 @@
+Dataset {
+  Grid {
+    ARRAY:
+      Float32 ndvi[time = 365][lat = 292][lon = 296];
+    MAPS:
+      Float64 time[time = 365];
+      Float64 lat[lat = 292];
+      Float64 lon[lon = 296];
+  } ndvi;
+  Float64 time[time = 365];
+  Float64 lat[lat = 292];
+  Float64 lon[lon = 296];
+} /MOD09CMG_NDVI;

@@ -1,0 +1,276 @@
+2013-07-26 15:15:58 StandardHost[localhost]: Removing web application at context path 
+2013-07-26 15:15:58 StandardHost[localhost]: Removing web application at context path /dods
+2013-07-26 15:15:58 StandardHost[localhost]: Removing web application at context path /doc
+2013-07-26 15:16:00 WebappLoader[/doc]: Deploying class repositories to work directory /home/freeze/water_monitor/African_Drought_Monitor/LIBRARIES/gds-2.0/tomcat4/work/Standalone/localhost/doc
+2013-07-26 15:16:00 ContextConfig[/doc]: Missing application web.xml, using defaults only
+2013-07-26 15:16:00 StandardManager[/doc]: Seeding random number generator class java.security.SecureRandom
+2013-07-26 15:16:00 StandardManager[/doc]: Seeding of random number generator has been completed
+2013-07-26 15:16:00 StandardWrapper[/doc:default]: Loading container servlet default
+2013-07-26 15:16:00 StandardWrapper[/doc:invoker]: Loading container servlet invoker
+2013-07-26 15:16:00 HostConfig[localhost]: Deploying web application directory ROOT
+2013-07-26 15:16:00 StandardHost[localhost]: Installing web application at context path  from URL file:/home/freeze/water_monitor/African_Drought_Monitor/LIBRARIES/gds-2.0/tomcat4/webapps/ROOT
+2013-07-26 15:16:00 WebappLoader[]: Deploying class repositories to work directory /home/freeze/water_monitor/African_Drought_Monitor/LIBRARIES/gds-2.0/tomcat4/work/Standalone/localhost/_
+2013-07-26 15:16:00 StandardManager[]: Seeding random number generator class java.security.SecureRandom
+2013-07-26 15:16:00 StandardManager[]: Seeding of random number generator has been completed
+2013-07-26 15:16:00 StandardWrapper[:default]: Loading container servlet default
+2013-07-26 15:16:00 StandardWrapper[:invoker]: Loading container servlet invoker
+2013-07-26 15:16:00 HostConfig[localhost]: Deploying web application directory dods
+2013-07-26 15:16:00 StandardHost[localhost]: Installing web application at context path /dods from URL file:/home/freeze/water_monitor/African_Drought_Monitor/LIBRARIES/gds-2.0/tomcat4/webapps/dods
+2013-07-26 15:16:00 WebappLoader[/dods]: Deploying class repositories to work directory /home/freeze/water_monitor/African_Drought_Monitor/LIBRARIES/gds-2.0/tomcat4/work/Standalone/localhost/dods
+2013-07-26 15:16:00 WebappLoader[/dods]: Deploy JAR /WEB-INF/lib/anagram.jar to /home/freeze/water_monitor/African_Drought_Monitor/LIBRARIES/gds-2.0/tomcat4/webapps/dods/WEB-INF/lib/anagram.jar
+2013-07-26 15:16:00 WebappLoader[/dods]: Deploy JAR /WEB-INF/lib/dods-1.1.7.jar to /home/freeze/water_monitor/African_Drought_Monitor/LIBRARIES/gds-2.0/tomcat4/webapps/dods/WEB-INF/lib/dods-1.1.7.jar
+2013-07-26 15:16:00 WebappLoader[/dods]: Deploy JAR /WEB-INF/lib/gds.jar to /home/freeze/water_monitor/African_Drought_Monitor/LIBRARIES/gds-2.0/tomcat4/webapps/dods/WEB-INF/lib/gds.jar
+2013-07-26 15:16:00 WebappLoader[/dods]: Deploy JAR /WEB-INF/lib/gnu-getopt-1.0.6.jar to /home/freeze/water_monitor/African_Drought_Monitor/LIBRARIES/gds-2.0/tomcat4/webapps/dods/WEB-INF/lib/gnu-getopt-1.0.6.jar
+2013-07-26 15:16:00 WebappLoader[/dods]: Deploy JAR /WEB-INF/lib/gnu-regexp-1.1.4.jar to /home/freeze/water_monitor/African_Drought_Monitor/LIBRARIES/gds-2.0/tomcat4/webapps/dods/WEB-INF/lib/gnu-regexp-1.1.4.jar
+2013-07-26 15:16:00 StandardManager[/dods]: Seeding random number generator class java.security.SecureRandom
+2013-07-26 15:16:00 StandardManager[/dods]: Seeding of random number generator has been completed
+2013-07-26 15:16:00 StandardWrapper[/dods:default]: Loading container servlet default
+2013-07-26 15:16:00 StandardContext[/dods]: Servlet /dods threw load() exception
+javax.servlet.ServletException: 
+	at org.iges.anagram.Server.fail(Server.java:310)
+	at org.iges.anagram.Server.<init>(Server.java:247)
+	at org.iges.anagram.AnagramServlet.init(AnagramServlet.java:138)
+	at org.apache.catalina.core.StandardWrapper.loadServlet(StandardWrapper.java:934)
+	at org.apache.catalina.core.StandardWrapper.load(StandardWrapper.java:821)
+	at org.apache.catalina.core.StandardContext.loadOnStartup(StandardContext.java:3420)
+	at org.apache.catalina.core.StandardContext.start(StandardContext.java:3608)
+	at org.apache.catalina.core.ContainerBase.addChildInternal(ContainerBase.java:821)
+	at org.apache.catalina.core.ContainerBase.addChild(ContainerBase.java:807)
+	at org.apache.catalina.core.StandardHost.addChild(StandardHost.java:579)
+	at org.apache.catalina.core.StandardHostDeployer.install(StandardHostDeployer.java:257)
+	at org.apache.catalina.core.StandardHost.install(StandardHost.java:772)
+	at org.apache.catalina.startup.HostConfig.deployDirectories(HostConfig.java:569)
+	at org.apache.catalina.startup.HostConfig.deployApps(HostConfig.java:411)
+	at org.apache.catalina.startup.HostConfig.start(HostConfig.java:879)
+	at org.apache.catalina.startup.HostConfig.lifecycleEvent(HostConfig.java:368)
+	at org.apache.catalina.util.LifecycleSupport.fireLifecycleEvent(LifecycleSupport.java:166)
+	at org.apache.catalina.core.ContainerBase.start(ContainerBase.java:1196)
+	at org.apache.catalina.core.StandardHost.start(StandardHost.java:738)
+	at org.apache.catalina.core.ContainerBase.start(ContainerBase.java:1188)
+	at org.apache.catalina.core.StandardEngine.start(StandardEngine.java:347)
+	at org.apache.catalina.core.StandardService.start(StandardService.java:497)
+	at org.apache.catalina.core.StandardServer.start(StandardServer.java:2189)
+	at org.apache.catalina.startup.Catalina.start(Catalina.java:512)
+	at org.apache.catalina.startup.Catalina.execute(Catalina.java:400)
+	at org.apache.catalina.startup.Catalina.process(Catalina.java:180)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:57)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:601)
+	at org.apache.catalina.startup.Bootstrap.main(Bootstrap.java:203)
+
+2013-07-26 15:16:00 StandardWrapper[/dods:invoker]: Loading container servlet invoker
+2013-07-26 15:16:01 StandardHost[localhost]: Removing web application at context path 
+2013-07-26 15:16:02 StandardHost[localhost]: Removing web application at context path /dods
+2013-07-26 15:16:02 StandardHost[localhost]: Removing web application at context path /doc
+2013-07-26 15:16:45 WebappLoader[/doc]: Deploying class repositories to work directory /home/freeze/water_monitor/African_Drought_Monitor/LIBRARIES/gds-2.0/tomcat4/work/Standalone/localhost/doc
+2013-07-26 15:16:45 ContextConfig[/doc]: Missing application web.xml, using defaults only
+2013-07-26 15:16:45 StandardManager[/doc]: Seeding random number generator class java.security.SecureRandom
+2013-07-26 15:16:45 StandardManager[/doc]: Seeding of random number generator has been completed
+2013-07-26 15:16:45 StandardWrapper[/doc:default]: Loading container servlet default
+2013-07-26 15:16:45 StandardWrapper[/doc:invoker]: Loading container servlet invoker
+2013-07-26 15:16:45 HostConfig[localhost]: Deploying web application directory ROOT
+2013-07-26 15:16:45 StandardHost[localhost]: Installing web application at context path  from URL file:/home/freeze/water_monitor/African_Drought_Monitor/LIBRARIES/gds-2.0/tomcat4/webapps/ROOT
+2013-07-26 15:16:45 WebappLoader[]: Deploying class repositories to work directory /home/freeze/water_monitor/African_Drought_Monitor/LIBRARIES/gds-2.0/tomcat4/work/Standalone/localhost/_
+2013-07-26 15:16:45 StandardManager[]: Seeding random number generator class java.security.SecureRandom
+2013-07-26 15:16:45 StandardManager[]: Seeding of random number generator has been completed
+2013-07-26 15:16:45 StandardWrapper[:default]: Loading container servlet default
+2013-07-26 15:16:45 StandardWrapper[:invoker]: Loading container servlet invoker
+2013-07-26 15:16:45 HostConfig[localhost]: Deploying web application directory dods
+2013-07-26 15:16:45 StandardHost[localhost]: Installing web application at context path /dods from URL file:/home/freeze/water_monitor/African_Drought_Monitor/LIBRARIES/gds-2.0/tomcat4/webapps/dods
+2013-07-26 15:16:45 WebappLoader[/dods]: Deploying class repositories to work directory /home/freeze/water_monitor/African_Drought_Monitor/LIBRARIES/gds-2.0/tomcat4/work/Standalone/localhost/dods
+2013-07-26 15:16:45 WebappLoader[/dods]: Deploy JAR /WEB-INF/lib/anagram.jar to /home/freeze/water_monitor/African_Drought_Monitor/LIBRARIES/gds-2.0/tomcat4/webapps/dods/WEB-INF/lib/anagram.jar
+2013-07-26 15:16:45 WebappLoader[/dods]: Deploy JAR /WEB-INF/lib/dods-1.1.7.jar to /home/freeze/water_monitor/African_Drought_Monitor/LIBRARIES/gds-2.0/tomcat4/webapps/dods/WEB-INF/lib/dods-1.1.7.jar
+2013-07-26 15:16:45 WebappLoader[/dods]: Deploy JAR /WEB-INF/lib/gds.jar to /home/freeze/water_monitor/African_Drought_Monitor/LIBRARIES/gds-2.0/tomcat4/webapps/dods/WEB-INF/lib/gds.jar
+2013-07-26 15:16:45 WebappLoader[/dods]: Deploy JAR /WEB-INF/lib/gnu-getopt-1.0.6.jar to /home/freeze/water_monitor/African_Drought_Monitor/LIBRARIES/gds-2.0/tomcat4/webapps/dods/WEB-INF/lib/gnu-getopt-1.0.6.jar
+2013-07-26 15:16:45 WebappLoader[/dods]: Deploy JAR /WEB-INF/lib/gnu-regexp-1.1.4.jar to /home/freeze/water_monitor/African_Drought_Monitor/LIBRARIES/gds-2.0/tomcat4/webapps/dods/WEB-INF/lib/gnu-regexp-1.1.4.jar
+2013-07-26 15:16:46 StandardManager[/dods]: Seeding random number generator class java.security.SecureRandom
+2013-07-26 15:16:46 StandardManager[/dods]: Seeding of random number generator has been completed
+2013-07-26 15:16:46 StandardWrapper[/dods:default]: Loading container servlet default
+2013-07-26 15:16:46 StandardContext[/dods]: Servlet /dods threw load() exception
+javax.servlet.ServletException: 
+	at org.iges.anagram.Server.fail(Server.java:310)
+	at org.iges.anagram.Server.<init>(Server.java:247)
+	at org.iges.anagram.AnagramServlet.init(AnagramServlet.java:138)
+	at org.apache.catalina.core.StandardWrapper.loadServlet(StandardWrapper.java:934)
+	at org.apache.catalina.core.StandardWrapper.load(StandardWrapper.java:821)
+	at org.apache.catalina.core.StandardContext.loadOnStartup(StandardContext.java:3420)
+	at org.apache.catalina.core.StandardContext.start(StandardContext.java:3608)
+	at org.apache.catalina.core.ContainerBase.addChildInternal(ContainerBase.java:821)
+	at org.apache.catalina.core.ContainerBase.addChild(ContainerBase.java:807)
+	at org.apache.catalina.core.StandardHost.addChild(StandardHost.java:579)
+	at org.apache.catalina.core.StandardHostDeployer.install(StandardHostDeployer.java:257)
+	at org.apache.catalina.core.StandardHost.install(StandardHost.java:772)
+	at org.apache.catalina.startup.HostConfig.deployDirectories(HostConfig.java:569)
+	at org.apache.catalina.startup.HostConfig.deployApps(HostConfig.java:411)
+	at org.apache.catalina.startup.HostConfig.start(HostConfig.java:879)
+	at org.apache.catalina.startup.HostConfig.lifecycleEvent(HostConfig.java:368)
+	at org.apache.catalina.util.LifecycleSupport.fireLifecycleEvent(LifecycleSupport.java:166)
+	at org.apache.catalina.core.ContainerBase.start(ContainerBase.java:1196)
+	at org.apache.catalina.core.StandardHost.start(StandardHost.java:738)
+	at org.apache.catalina.core.ContainerBase.start(ContainerBase.java:1188)
+	at org.apache.catalina.core.StandardEngine.start(StandardEngine.java:347)
+	at org.apache.catalina.core.StandardService.start(StandardService.java:497)
+	at org.apache.catalina.core.StandardServer.start(StandardServer.java:2189)
+	at org.apache.catalina.startup.Catalina.start(Catalina.java:512)
+	at org.apache.catalina.startup.Catalina.execute(Catalina.java:400)
+	at org.apache.catalina.startup.Catalina.process(Catalina.java:180)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:57)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:601)
+	at org.apache.catalina.startup.Bootstrap.main(Bootstrap.java:203)
+
+2013-07-26 15:16:46 StandardWrapper[/dods:invoker]: Loading container servlet invoker
+2013-07-26 15:16:46 StandardHost[localhost]: Removing web application at context path 
+2013-07-26 15:16:46 StandardHost[localhost]: Removing web application at context path /dods
+2013-07-26 15:16:46 StandardHost[localhost]: Removing web application at context path /doc
+2013-07-26 15:17:45 WebappLoader[/doc]: Deploying class repositories to work directory /home/freeze/water_monitor/African_Drought_Monitor/LIBRARIES/gds-2.0/tomcat4/work/Standalone/localhost/doc
+2013-07-26 15:17:45 ContextConfig[/doc]: Missing application web.xml, using defaults only
+2013-07-26 15:17:45 StandardManager[/doc]: Seeding random number generator class java.security.SecureRandom
+2013-07-26 15:17:45 StandardManager[/doc]: Seeding of random number generator has been completed
+2013-07-26 15:17:45 StandardWrapper[/doc:default]: Loading container servlet default
+2013-07-26 15:17:45 StandardWrapper[/doc:invoker]: Loading container servlet invoker
+2013-07-26 15:17:45 HostConfig[localhost]: Deploying web application directory ROOT
+2013-07-26 15:17:45 StandardHost[localhost]: Installing web application at context path  from URL file:/home/freeze/water_monitor/African_Drought_Monitor/LIBRARIES/gds-2.0/tomcat4/webapps/ROOT
+2013-07-26 15:17:45 WebappLoader[]: Deploying class repositories to work directory /home/freeze/water_monitor/African_Drought_Monitor/LIBRARIES/gds-2.0/tomcat4/work/Standalone/localhost/_
+2013-07-26 15:17:45 StandardManager[]: Seeding random number generator class java.security.SecureRandom
+2013-07-26 15:17:45 StandardManager[]: Seeding of random number generator has been completed
+2013-07-26 15:17:45 StandardWrapper[:default]: Loading container servlet default
+2013-07-26 15:17:45 StandardWrapper[:invoker]: Loading container servlet invoker
+2013-07-26 15:17:45 HostConfig[localhost]: Deploying web application directory dods
+2013-07-26 15:17:45 StandardHost[localhost]: Installing web application at context path /dods from URL file:/home/freeze/water_monitor/African_Drought_Monitor/LIBRARIES/gds-2.0/tomcat4/webapps/dods
+2013-07-26 15:17:45 WebappLoader[/dods]: Deploying class repositories to work directory /home/freeze/water_monitor/African_Drought_Monitor/LIBRARIES/gds-2.0/tomcat4/work/Standalone/localhost/dods
+2013-07-26 15:17:45 WebappLoader[/dods]: Deploy JAR /WEB-INF/lib/anagram.jar to /home/freeze/water_monitor/African_Drought_Monitor/LIBRARIES/gds-2.0/tomcat4/webapps/dods/WEB-INF/lib/anagram.jar
+2013-07-26 15:17:45 WebappLoader[/dods]: Deploy JAR /WEB-INF/lib/dods-1.1.7.jar to /home/freeze/water_monitor/African_Drought_Monitor/LIBRARIES/gds-2.0/tomcat4/webapps/dods/WEB-INF/lib/dods-1.1.7.jar
+2013-07-26 15:17:45 WebappLoader[/dods]: Deploy JAR /WEB-INF/lib/gds.jar to /home/freeze/water_monitor/African_Drought_Monitor/LIBRARIES/gds-2.0/tomcat4/webapps/dods/WEB-INF/lib/gds.jar
+2013-07-26 15:17:45 WebappLoader[/dods]: Deploy JAR /WEB-INF/lib/gnu-getopt-1.0.6.jar to /home/freeze/water_monitor/African_Drought_Monitor/LIBRARIES/gds-2.0/tomcat4/webapps/dods/WEB-INF/lib/gnu-getopt-1.0.6.jar
+2013-07-26 15:17:45 WebappLoader[/dods]: Deploy JAR /WEB-INF/lib/gnu-regexp-1.1.4.jar to /home/freeze/water_monitor/African_Drought_Monitor/LIBRARIES/gds-2.0/tomcat4/webapps/dods/WEB-INF/lib/gnu-regexp-1.1.4.jar
+2013-07-26 15:17:45 StandardManager[/dods]: Seeding random number generator class java.security.SecureRandom
+2013-07-26 15:17:45 StandardManager[/dods]: Seeding of random number generator has been completed
+2013-07-26 15:17:45 StandardWrapper[/dods:default]: Loading container servlet default
+2013-07-26 15:17:45 StandardContext[/dods]: Servlet /dods threw load() exception
+javax.servlet.ServletException: 
+	at org.iges.anagram.Server.fail(Server.java:310)
+	at org.iges.anagram.Server.<init>(Server.java:247)
+	at org.iges.anagram.AnagramServlet.init(AnagramServlet.java:138)
+	at org.apache.catalina.core.StandardWrapper.loadServlet(StandardWrapper.java:934)
+	at org.apache.catalina.core.StandardWrapper.load(StandardWrapper.java:821)
+	at org.apache.catalina.core.StandardContext.loadOnStartup(StandardContext.java:3420)
+	at org.apache.catalina.core.StandardContext.start(StandardContext.java:3608)
+	at org.apache.catalina.core.ContainerBase.addChildInternal(ContainerBase.java:821)
+	at org.apache.catalina.core.ContainerBase.addChild(ContainerBase.java:807)
+	at org.apache.catalina.core.StandardHost.addChild(StandardHost.java:579)
+	at org.apache.catalina.core.StandardHostDeployer.install(StandardHostDeployer.java:257)
+	at org.apache.catalina.core.StandardHost.install(StandardHost.java:772)
+	at org.apache.catalina.startup.HostConfig.deployDirectories(HostConfig.java:569)
+	at org.apache.catalina.startup.HostConfig.deployApps(HostConfig.java:411)
+	at org.apache.catalina.startup.HostConfig.start(HostConfig.java:879)
+	at org.apache.catalina.startup.HostConfig.lifecycleEvent(HostConfig.java:368)
+	at org.apache.catalina.util.LifecycleSupport.fireLifecycleEvent(LifecycleSupport.java:166)
+	at org.apache.catalina.core.ContainerBase.start(ContainerBase.java:1196)
+	at org.apache.catalina.core.StandardHost.start(StandardHost.java:738)
+	at org.apache.catalina.core.ContainerBase.start(ContainerBase.java:1188)
+	at org.apache.catalina.core.StandardEngine.start(StandardEngine.java:347)
+	at org.apache.catalina.core.StandardService.start(StandardService.java:497)
+	at org.apache.catalina.core.StandardServer.start(StandardServer.java:2189)
+	at org.apache.catalina.startup.Catalina.start(Catalina.java:512)
+	at org.apache.catalina.startup.Catalina.execute(Catalina.java:400)
+	at org.apache.catalina.startup.Catalina.process(Catalina.java:180)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:57)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:601)
+	at org.apache.catalina.startup.Bootstrap.main(Bootstrap.java:203)
+
+2013-07-26 15:17:45 StandardWrapper[/dods:invoker]: Loading container servlet invoker
+2013-07-26 15:17:45 StandardHost[localhost]: Removing web application at context path 
+2013-07-26 15:17:45 StandardHost[localhost]: Removing web application at context path /dods
+2013-07-26 15:17:45 StandardHost[localhost]: Removing web application at context path /doc
+2013-07-26 15:18:25 WebappLoader[/doc]: Deploying class repositories to work directory /home/freeze/water_monitor/African_Drought_Monitor/LIBRARIES/gds-2.0/tomcat4/work/Standalone/localhost/doc
+2013-07-26 15:18:25 ContextConfig[/doc]: Missing application web.xml, using defaults only
+2013-07-26 15:18:25 StandardManager[/doc]: Seeding random number generator class java.security.SecureRandom
+2013-07-26 15:18:25 StandardManager[/doc]: Seeding of random number generator has been completed
+2013-07-26 15:18:25 StandardWrapper[/doc:default]: Loading container servlet default
+2013-07-26 15:18:25 StandardWrapper[/doc:invoker]: Loading container servlet invoker
+2013-07-26 15:18:25 HostConfig[localhost]: Deploying web application directory ROOT
+2013-07-26 15:18:25 StandardHost[localhost]: Installing web application at context path  from URL file:/home/freeze/water_monitor/African_Drought_Monitor/LIBRARIES/gds-2.0/tomcat4/webapps/ROOT
+2013-07-26 15:18:25 WebappLoader[]: Deploying class repositories to work directory /home/freeze/water_monitor/African_Drought_Monitor/LIBRARIES/gds-2.0/tomcat4/work/Standalone/localhost/_
+2013-07-26 15:18:25 StandardManager[]: Seeding random number generator class java.security.SecureRandom
+2013-07-26 15:18:25 StandardManager[]: Seeding of random number generator has been completed
+2013-07-26 15:18:25 StandardWrapper[:default]: Loading container servlet default
+2013-07-26 15:18:25 StandardWrapper[:invoker]: Loading container servlet invoker
+2013-07-26 15:18:25 HostConfig[localhost]: Deploying web application directory dods
+2013-07-26 15:18:25 StandardHost[localhost]: Installing web application at context path /dods from URL file:/home/freeze/water_monitor/African_Drought_Monitor/LIBRARIES/gds-2.0/tomcat4/webapps/dods
+2013-07-26 15:18:25 WebappLoader[/dods]: Deploying class repositories to work directory /home/freeze/water_monitor/African_Drought_Monitor/LIBRARIES/gds-2.0/tomcat4/work/Standalone/localhost/dods
+2013-07-26 15:18:25 WebappLoader[/dods]: Deploy JAR /WEB-INF/lib/anagram.jar to /home/freeze/water_monitor/African_Drought_Monitor/LIBRARIES/gds-2.0/tomcat4/webapps/dods/WEB-INF/lib/anagram.jar
+2013-07-26 15:18:25 WebappLoader[/dods]: Deploy JAR /WEB-INF/lib/dods-1.1.7.jar to /home/freeze/water_monitor/African_Drought_Monitor/LIBRARIES/gds-2.0/tomcat4/webapps/dods/WEB-INF/lib/dods-1.1.7.jar
+2013-07-26 15:18:25 WebappLoader[/dods]: Deploy JAR /WEB-INF/lib/gds.jar to /home/freeze/water_monitor/African_Drought_Monitor/LIBRARIES/gds-2.0/tomcat4/webapps/dods/WEB-INF/lib/gds.jar
+2013-07-26 15:18:25 WebappLoader[/dods]: Deploy JAR /WEB-INF/lib/gnu-getopt-1.0.6.jar to /home/freeze/water_monitor/African_Drought_Monitor/LIBRARIES/gds-2.0/tomcat4/webapps/dods/WEB-INF/lib/gnu-getopt-1.0.6.jar
+2013-07-26 15:18:25 WebappLoader[/dods]: Deploy JAR /WEB-INF/lib/gnu-regexp-1.1.4.jar to /home/freeze/water_monitor/African_Drought_Monitor/LIBRARIES/gds-2.0/tomcat4/webapps/dods/WEB-INF/lib/gnu-regexp-1.1.4.jar
+2013-07-26 15:18:25 StandardManager[/dods]: Seeding random number generator class java.security.SecureRandom
+2013-07-26 15:18:25 StandardManager[/dods]: Seeding of random number generator has been completed
+2013-07-26 15:18:25 StandardWrapper[/dods:default]: Loading container servlet default
+2013-07-26 15:18:25 StandardContext[/dods]: Servlet /dods threw load() exception
+javax.servlet.ServletException: 
+	at org.iges.anagram.Server.fail(Server.java:310)
+	at org.iges.anagram.Server.<init>(Server.java:247)
+	at org.iges.anagram.AnagramServlet.init(AnagramServlet.java:138)
+	at org.apache.catalina.core.StandardWrapper.loadServlet(StandardWrapper.java:934)
+	at org.apache.catalina.core.StandardWrapper.load(StandardWrapper.java:821)
+	at org.apache.catalina.core.StandardContext.loadOnStartup(StandardContext.java:3420)
+	at org.apache.catalina.core.StandardContext.start(StandardContext.java:3608)
+	at org.apache.catalina.core.ContainerBase.addChildInternal(ContainerBase.java:821)
+	at org.apache.catalina.core.ContainerBase.addChild(ContainerBase.java:807)
+	at org.apache.catalina.core.StandardHost.addChild(StandardHost.java:579)
+	at org.apache.catalina.core.StandardHostDeployer.install(StandardHostDeployer.java:257)
+	at org.apache.catalina.core.StandardHost.install(StandardHost.java:772)
+	at org.apache.catalina.startup.HostConfig.deployDirectories(HostConfig.java:569)
+	at org.apache.catalina.startup.HostConfig.deployApps(HostConfig.java:411)
+	at org.apache.catalina.startup.HostConfig.start(HostConfig.java:879)
+	at org.apache.catalina.startup.HostConfig.lifecycleEvent(HostConfig.java:368)
+	at org.apache.catalina.util.LifecycleSupport.fireLifecycleEvent(LifecycleSupport.java:166)
+	at org.apache.catalina.core.ContainerBase.start(ContainerBase.java:1196)
+	at org.apache.catalina.core.StandardHost.start(StandardHost.java:738)
+	at org.apache.catalina.core.ContainerBase.start(ContainerBase.java:1188)
+	at org.apache.catalina.core.StandardEngine.start(StandardEngine.java:347)
+	at org.apache.catalina.core.StandardService.start(StandardService.java:497)
+	at org.apache.catalina.core.StandardServer.start(StandardServer.java:2189)
+	at org.apache.catalina.startup.Catalina.start(Catalina.java:512)
+	at org.apache.catalina.startup.Catalina.execute(Catalina.java:400)
+	at org.apache.catalina.startup.Catalina.process(Catalina.java:180)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:57)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:601)
+	at org.apache.catalina.startup.Bootstrap.main(Bootstrap.java:203)
+
+2013-07-26 15:18:25 StandardWrapper[/dods:invoker]: Loading container servlet invoker
+2013-07-26 15:18:26 StandardHost[localhost]: Removing web application at context path 
+2013-07-26 15:18:26 StandardHost[localhost]: Removing web application at context path /dods
+2013-07-26 15:18:26 StandardHost[localhost]: Removing web application at context path /doc
+2013-07-26 15:19:01 WebappLoader[/doc]: Deploying class repositories to work directory /home/freeze/water_monitor/African_Drought_Monitor/LIBRARIES/gds-2.0/tomcat4/work/Standalone/localhost/doc
+2013-07-26 15:19:01 ContextConfig[/doc]: Missing application web.xml, using defaults only
+2013-07-26 15:19:01 StandardManager[/doc]: Seeding random number generator class java.security.SecureRandom
+2013-07-26 15:19:01 StandardManager[/doc]: Seeding of random number generator has been completed
+2013-07-26 15:19:01 StandardWrapper[/doc:default]: Loading container servlet default
+2013-07-26 15:19:01 StandardWrapper[/doc:invoker]: Loading container servlet invoker
+2013-07-26 15:19:01 HostConfig[localhost]: Deploying web application directory ROOT
+2013-07-26 15:19:01 StandardHost[localhost]: Installing web application at context path  from URL file:/home/freeze/water_monitor/African_Drought_Monitor/LIBRARIES/gds-2.0/tomcat4/webapps/ROOT
+2013-07-26 15:19:01 WebappLoader[]: Deploying class repositories to work directory /home/freeze/water_monitor/African_Drought_Monitor/LIBRARIES/gds-2.0/tomcat4/work/Standalone/localhost/_
+2013-07-26 15:19:01 StandardManager[]: Seeding random number generator class java.security.SecureRandom
+2013-07-26 15:19:01 StandardManager[]: Seeding of random number generator has been completed
+2013-07-26 15:19:01 StandardWrapper[:default]: Loading container servlet default
+2013-07-26 15:19:01 StandardWrapper[:invoker]: Loading container servlet invoker
+2013-07-26 15:19:01 HostConfig[localhost]: Deploying web application directory dods
+2013-07-26 15:19:01 StandardHost[localhost]: Installing web application at context path /dods from URL file:/home/freeze/water_monitor/African_Drought_Monitor/LIBRARIES/gds-2.0/tomcat4/webapps/dods
+2013-07-26 15:19:01 WebappLoader[/dods]: Deploying class repositories to work directory /home/freeze/water_monitor/African_Drought_Monitor/LIBRARIES/gds-2.0/tomcat4/work/Standalone/localhost/dods
+2013-07-26 15:19:01 WebappLoader[/dods]: Deploy JAR /WEB-INF/lib/anagram.jar to /home/freeze/water_monitor/African_Drought_Monitor/LIBRARIES/gds-2.0/tomcat4/webapps/dods/WEB-INF/lib/anagram.jar
+2013-07-26 15:19:01 WebappLoader[/dods]: Deploy JAR /WEB-INF/lib/dods-1.1.7.jar to /home/freeze/water_monitor/African_Drought_Monitor/LIBRARIES/gds-2.0/tomcat4/webapps/dods/WEB-INF/lib/dods-1.1.7.jar
+2013-07-26 15:19:01 WebappLoader[/dods]: Deploy JAR /WEB-INF/lib/gds.jar to /home/freeze/water_monitor/African_Drought_Monitor/LIBRARIES/gds-2.0/tomcat4/webapps/dods/WEB-INF/lib/gds.jar
+2013-07-26 15:19:01 WebappLoader[/dods]: Deploy JAR /WEB-INF/lib/gnu-getopt-1.0.6.jar to /home/freeze/water_monitor/African_Drought_Monitor/LIBRARIES/gds-2.0/tomcat4/webapps/dods/WEB-INF/lib/gnu-getopt-1.0.6.jar
+2013-07-26 15:19:01 WebappLoader[/dods]: Deploy JAR /WEB-INF/lib/gnu-regexp-1.1.4.jar to /home/freeze/water_monitor/African_Drought_Monitor/LIBRARIES/gds-2.0/tomcat4/webapps/dods/WEB-INF/lib/gnu-regexp-1.1.4.jar
+2013-07-26 15:19:01 StandardManager[/dods]: Seeding random number generator class java.security.SecureRandom
+2013-07-26 15:19:01 StandardManager[/dods]: Seeding of random number generator has been completed
+2013-07-26 15:19:01 StandardWrapper[/dods:default]: Loading container servlet default
+2013-07-26 15:19:01 StandardWrapper[/dods:invoker]: Loading container servlet invoker
