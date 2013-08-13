@@ -1,0 +1,63 @@
+<html>
+<body>
+
+<form action="Spatial_Data_Request.php" method="post">
+
+<!-- Choose the time step -->
+Choose the Time Step:<br>
+<input type="radio" name="tstep" value="daily">daily
+<input type="radio" name="tstep" value="monthly" checked>monthly
+<input type="radio" name="tstep" value="yearly">yearly<br>
+<br>
+
+<!-- Choose the time frame -->
+Choose the Initial Time Stamp (after 1/1/1950):<br>
+Year: <input type="text" name="iyear" value="1950">
+Month: <input type="text" name="imonth" value="1">
+Day: <input type="text" name="iday" value="1"><br>
+<br>
+Choose the Final Time Stamp (3 days before realtime):<br>
+Year: <input type="text" name="fyear" value="1960">
+Month: <input type="text" name="fmonth" value="1">
+Day: <input type="text" name="fday" value="1"><br>
+<br>
+
+<!-- Choose the spatial box -->
+Choose the spatial box dimensions [Lat = (-35.0 - 38.0); Lon = (-19.0 - 55.0)]:<br>
+Lower Left Corner Latitude: <input type="text" name="llclat" value="-35.0"><br>
+Lower Left Corner Longitude: <input type="text" name="llclon" value="-19.0"><br>
+Upper Right Corner Latitude: <input type="text" name="urclat" value="38.0"><br>
+Upper Right Corner Longitude: <input type="text" name="urclon" value="55.0"><br>
+<br>
+
+<!-- Choose the spatial resolution -->
+Define the spatial resolution (degrees):<br>
+<input type="radio" name="sres" value="0.1">0.1 degree
+<input type="radio" name="sres" value="0.25" checked>0.25 degree
+<input type="radio" name="sres" value="1.0">1.0 degree<br>
+<br>
+
+<!-- Choose the variables -->
+Choose the variables: <br>
+<input type="checkbox" name="variables[]" value="prec_pgf">prec_pgf<br>
+<input type="checkbox" name="variables[]" value="tmax_pgf">tmax_pgf<br>
+<input type="checkbox" name="variables[]" value="tmin_pgf">tmin_pgf<br>
+<input type="checkbox" name="variables[]" value="wind_pgf">wind_pgf<br>
+<br>
+
+<!-- Choose the file format -->
+Choose the file format: <br>
+<input type="radio" name="format" value="arc_ascii">arc ascii
+<input type="radio" name="format" value="netcdf" checked>netcdf<br>
+<br>
+
+<!-- Notification email -->
+Provide an email to notify when the data is ready<br>
+Email: <input type="text" name="email"></br>
+<br>
+
+<input type="submit">
+</form>
+
+</body>
+</html>

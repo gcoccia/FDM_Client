@@ -1,11 +1,14 @@
+import matplotlib as mpl
+mpl.use('Agg')
+import matplotlib.pyplot as plt
 import os
 import datetime
 import grads
 import numpy as np
+from mpl_toolkits.basemap import Basemap,cm
 #import fileinput
 import netCDF4 as netcdf
 #import pyhdf.SD as sd
-#import matplotlib.pyplot as plt
 #import scipy.stats as ss
 #import subprocess
 #import dateutil.relativedelta as relativedelta
@@ -21,13 +24,23 @@ def Check_and_Make_Directory(dir):
   
  return
  
-def Setup_Routines():
+def Setup_Routines(date):
 
  #Setup the main directories
- data_dir = "../DATA"
- Check_and_Make_Directory(data_dir)
+ dir = "../DATA"
+ Check_and_Make_Directory(dir)
+ dir = "../IMAGES"
+ Check_and_Make_Directory(dir)
 
- #Install the required software
+ #Setup the daily directories
+ dir = "../DATA/DAILY"
+ Check_and_Make_Directory(dir)
+ dir = "../DATA/DAILY/%04d%02d%02d" % (date.year,date.month,date.day)
+ Check_and_Make_Directory(dir)
+ dir = "../IMAGES/DAILY"
+ Check_and_Make_Directory(dir)
+ dir = "../IMAGES/DAILY/%04d%02d%02d" % (date.year,date.month,date.day)
+ Check_and_Make_Directory(dir)
 
  return
 
@@ -97,14 +110,6 @@ def Download_and_Process_Forcing(date,dims):
  if date <= datetime.datetime(2008,12,31):
   http_root = "http://freeze.princeton.edu:9090/dods/AFRICAN_WATER_MONITOR/PRINCETON_GLOBAL_FORCING"
 
- #Make sure the main directory exists
- forcing_dir = "../DATA/FORCING/"
- Check_and_Make_Directory(forcing_dir)
-
- #Make sure the daily directory exists
- daily_dir = "../DATA/FORCING/DAILY"
- Check_and_Make_Directory(daily_dir)
-
  #Download the daily data
  vars = ["prec","tmax","tmin","wind"]
  vars_info = ["daily tmax (k)","daily tmin (k)","daily total precip (mm)","daily mean wind speed (m/s)"]
@@ -117,7 +122,7 @@ def Download_and_Process_Forcing(date,dims):
  #Regrid and write variables to file
  time = datetime2gradstime(date)
  ga("set time %s" % time)
- file = '../DATA/FORCING/DAILY/forcing_%04d%02d%02d_daily.nc' % (date.year,date.month,date.day)
+ file = '../DATA/DAILY/%04d%02d%02d/pgf_%04d%02d%02d_daily.nc' % (date.year,date.month,date.day,date.year,date.month,date.day)
  fp = Create_NETCDF_File(dims,file,vars,vars_info,date,'days',1)
  data = []
  for var in vars:
@@ -129,22 +134,17 @@ def Download_and_Process_Forcing(date,dims):
  fp.close()
 
  #Create/Update the control file
- file = '../DATA/FORCING/DAILY/forcing_daily.ctl'
+ file = '../DATA/DAILY/pgf_daily.ctl'
  fp = open(file,'w')
- fp.write('dset ^forcing_%s%s%s_daily.nc\n' % ('%y4','%m2','%d2'))
+ fp.write('dset ^%s%s%s/pgf_%s%s%s_daily.nc\n' % ('%y4','%m2','%d2','%y4','%m2','%d2'))
  fp.write('options template\n')
  fp.write('dtype netcdf\n')
- fp.write('tdef t %d linear %s %s\n' % (100,'1JAN1948','1dy'))
+ fp.write('tdef t %d linear %s %s\n' % (22128,'1JAN1948','1dy'))
  fp.close()
 
  #Download the monthly file
- #Make sure the daily directory exists
- monthly_dir = "../DATA/FORCING/MONTHLY"
- Check_and_Make_Directory(monthly_dir)
 
  #Make sure the daily directory exists
- yearly_dir = "../DATA/FORCING/YEARLY"
- Check_and_Make_Directory(yearly_dir)
  #ga("sdfopen %s/MONTHLY" % http_root)
 
  #ga("close 1")
@@ -153,6 +153,56 @@ def Download_and_Process_Forcing(date,dims):
  #ga("sdfopen %s/YEARLY" % http_root)
 
  #ga("close 1")
+
+ return
+
+def Create_Images(date,dims,dataset,timestep):
+ 
+ #Open control file
+ ga("xdfopen ../DATA/%s/%s.ctl" % (timestep,dataset))
+ #Extract all variable information
+ qh = ga.query("file")
+ #Create images for all variables
+ for var in qh.vars:
+  image_file = '../IMAGES/DAILY/%04d%02d%02d/%s_%04d%02d%02d_daily.png'  % (date.year,date.month,date.day,var,date.year,date.month,date.day)
+  ga("set time %s" % datetime2gradstime(date))
+  data = ga.exp("%s" % var)
+  Create_Image(image_file,data)
+ #Close access to file
+ ga("close 1")
+ 
+
+ return
+
+def Create_Image(file,data):
+
+ #Extract grid info
+ lats = data.grid.lat
+ lons = data.grid.lon
+ dpi = 50.0
+ nlat = lats.size/dpi
+ nlon = lons.size/dpi
+ #levels = np.linspace(np.min(data),np.max(data),40)
+ #levels[levels == 0.0] = 0.00001
+ levels = [0,1,2.5,5,7.5,10,15,20,30,40,50,70,100,150,200,250,300,400,500,600,750]
+ fig = plt.figure()#figsize=(nlon,nlat),dpi=dpi)
+ #Take up the whole figure with a single axis
+ ax = fig.add_axes([0, 0, 1, 1])
+ ax.axis('off')
+ #Create Basemap instance for mercator projection
+ res = lats[1] - lats[0]
+ llcrnrlat = lats[0] - res/2
+ urcrnrlat = lats[-1] + res/2
+ llcrnrlon = lons[0] - res/2
+ urcrnrlon = lons[-1] + res/2
+ ax.m = Basemap(projection='merc',llcrnrlat=llcrnrlat,urcrnrlat=urcrnrlat,llcrnrlon=llcrnrlon,urcrnrlon=urcrnrlon)
+ x, y = ax.m(*np.meshgrid(lons,lats))
+ cs = ax.m.contourf(x,y,data,levels=levels,linewidhts=0,cmap=cm.s3pcpn,linestyles=None,linewidths=None)
+ #cs = ax.m.imshow(data,interpolation='nearest')
+ #plt.imshow(data,interpolation='none')
+ plt.savefig(file,bbox_inches='tight')#,pad_inches=0.0,frame=None)
+ #Remove surrounding white regions
+ #os.system("convert %s -trim %s" % (file,file))
 
  return
  

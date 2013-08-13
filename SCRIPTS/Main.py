@@ -13,11 +13,11 @@ import numpy as np
 
 #1. Determine the dimensions
 dims = {}
-dims['minlat'] = 4.0 #-89.8750
-dims['minlon'] = -18.0 #0.1250
-dims['maxlat'] = 20.0
-dims['maxlon'] = 10.0
-dims['res'] = 0.2
+dims['minlat'] = -34.875 #-89.8750
+dims['minlon'] = -18.875 #0.1250
+dims['maxlat'] = 37.875
+dims['maxlon'] = 54.875
+dims['res'] = 0.25
 dims['nlat'] = np.int(np.ceil((dims['maxlat'] - dims['minlat'])/ dims['res'] + 1))
 dims['nlon'] = np.int(np.ceil((dims['maxlon'] - dims['minlon'])/ dims['res'] + 1))
 dims['maxlat'] = dims['minlat'] + dims['res']*(dims['nlat']-1)
@@ -26,10 +26,7 @@ dt = datetime.timedelta(days=1)
 date = datetime.datetime.today()
 idate = datetime.datetime(date.year,date.month,date.day) - 6*dt
 idate = datetime.datetime(1948,1,1)
-fdate = datetime.datetime(1948,12,31)
-
-#Setup routines
-cl.Setup_Routines()
+fdate = datetime.datetime(1948,1,10)
 
 #2. Download all the requested data
 date = idate
@@ -37,12 +34,22 @@ while date <= fdate:
 
  print date
 
+ #Setup routines
+ cl.Setup_Routines(date)
+
  #################################################
- #DOWNLOAD AND OUTPUT ALL THE REQUIRED DATA
+ #DOWNLOAD ALL THE REQUIRED DATA
  #################################################
 
  #PGF forcing (historical)
  cl.Download_and_Process_Forcing(date,dims)
+
+ #################################################
+ #CREATE ALL IMAGES
+ #################################################
+
+ #PGF forcing (historical
+ #cl.Create_Images(date,dims,'pgf_daily','DAILY')
 
  date = date + dt
 

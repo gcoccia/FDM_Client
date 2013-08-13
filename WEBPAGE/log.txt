@@ -1,0 +1,1 @@
+python Spatial_Data_Request.py daily -35.0 -19.0 38.0 55.0 1950 1 1 1950 1 10 netcdf chaneyna@gmail.com tmax_pgf 0.25
