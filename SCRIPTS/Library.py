@@ -11,7 +11,7 @@ import netCDF4 as netcdf
 #import pyhdf.SD as sd
 #import scipy.stats as ss
 #import subprocess
-#import dateutil.relativedelta as relativedelta
+import dateutil.relativedelta as relativedelta
 #from cython.parallel import prange
 grads_exe = '../LIBRARIES/grads-2.0.1.oga.1/Contents/grads'
 ga = grads.GrADS(Bin=grads_exe,Window=False,Echo=False)
@@ -42,6 +42,26 @@ def Setup_Routines(date):
  dir = "../IMAGES/DAILY/%04d%02d%02d" % (date.year,date.month,date.day)
  Check_and_Make_Directory(dir)
 
+ #Setup the monthly directories
+ dir = "../DATA/MONTHLY"
+ Check_and_Make_Directory(dir)
+ dir = "../DATA/MONTHLY/%04d%02d" % (date.year,date.month)
+ Check_and_Make_Directory(dir)
+ dir = "../IMAGES/MONTHLY"
+ Check_and_Make_Directory(dir)
+ dir = "../IMAGES/MONTHLY/%04d%02d" % (date.year,date.month)
+ Check_and_Make_Directory(dir)
+
+ #Setup the yearly directories
+ dir = "../DATA/YEARLY"
+ Check_and_Make_Directory(dir)
+ dir = "../DATA/YEARLY/%04d" % (date.year)
+ Check_and_Make_Directory(dir)
+ dir = "../IMAGES/YEARLY"
+ Check_and_Make_Directory(dir)
+ dir = "../IMAGES/YEARLY/%04d" % (date.year)
+ Check_and_Make_Directory(dir)
+
  return
 
 def datetime2gradstime(date):
@@ -50,6 +70,13 @@ def datetime2gradstime(date):
  str = date.strftime('%HZ%d%b%Y')
 
  return str
+
+def gradstime2datetime(str):
+
+ #Convert grads time to datetime
+ date = datetime.datetime.strptime(str,'%HZ%d%b%Y')
+
+ return date
 
 def Grads_Regrid(var_in,var_out,dims):
 
@@ -104,17 +131,35 @@ def Create_NETCDF_File(dims,file,vars,vars_info,tinitial,tstep,nt):
 
  return f
 
-def Download_and_Process_Forcing(date,dims):
+def Download_and_Process(date,dims,tstep,dataset):
+
+ #If monthly time step only extract at end of month
+ if tstep == "MONTHLY" and (date + datetime.timedelta(days=1)).month == date.month:
+  return
+
+ #If yearly time step only extract at end of month
+ if tstep == "YEARLY" and (date + datetime.timedelta(days=1)).year == date.year:
+  return
 
  #Define the grads server root
- if date <= datetime.datetime(2008,12,31):
-  http_root = "http://freeze.princeton.edu:9090/dods/AFRICAN_WATER_MONITOR/PRINCETON_GLOBAL_FORCING"
+ http_file = "http://freeze.princeton.edu:9090/dods/AFRICAN_WATER_CYCLE_MONITOR/%s/%s" % (dataset,tstep)
 
- #Download the daily data
- vars = ["prec","tmax","tmin","wind"]
- vars_info = ["daily tmax (k)","daily tmin (k)","daily total precip (mm)","daily mean wind speed (m/s)"]
- ga("sdfopen %s/DAILY" % http_root)
+ #Open access to grads data server
+ ga("sdfopen %s" % http_file)
 
+ #Extract basic info
+ qh = ga.query("file")
+ vars = qh.vars
+ vars_info = qh.var_titles
+ nt = qh.nt
+ ga("set t 1")
+ idate = gradstime2datetime(ga.exp(vars[0]).grid.time[0])
+
+ #If the date is before the first time step return
+ if date < idate:
+  ga("close 1")
+  return
+ 
  #Set grads region
  ga("set lat %f %f" % (dims['minlat'],dims['maxlat']))
  ga("set lon %f %f" % (dims['minlon'],dims['maxlon']))
@@ -122,7 +167,15 @@ def Download_and_Process_Forcing(date,dims):
  #Regrid and write variables to file
  time = datetime2gradstime(date)
  ga("set time %s" % time)
- file = '../DATA/DAILY/%04d%02d%02d/pgf_%04d%02d%02d_daily.nc' % (date.year,date.month,date.day,date.year,date.month,date.day)
+ if tstep == "DAILY":
+  file = '../DATA/DAILY/%04d%02d%02d/%s_%04d%02d%02d_daily.nc' % (date.year,date.month,date.day,dataset,date.year,date.month,date.day)
+ if tstep == "MONTHLY":
+  file = '../DATA/MONTHLY/%04d%02d/%s_%04d%02d_monthly.nc' % (date.year,date.month,dataset,date.year,date.month)
+ if tstep == "YEARLY":
+  file = '../DATA/YEARLY/%04d/%s_%04d_yearly.nc' % (date.year,dataset,date.year)
+ if os.path.exists(file) == True:
+  ga("close 1")
+  return
  fp = Create_NETCDF_File(dims,file,vars,vars_info,date,'days',1)
  data = []
  for var in vars:
@@ -134,25 +187,23 @@ def Download_and_Process_Forcing(date,dims):
  fp.close()
 
  #Create/Update the control file
- file = '../DATA/DAILY/pgf_daily.ctl'
+ file = '../DATA/%s/%s_%s.ctl' % (tstep,dataset,tstep)
  fp = open(file,'w')
- fp.write('dset ^%s%s%s/pgf_%s%s%s_daily.nc\n' % ('%y4','%m2','%d2','%y4','%m2','%d2'))
+ if tstep == "DAILY":
+  fp.write('dset ^%s%s%s/%s_%s%s%s_daily.nc\n' % ('%y4','%m2','%d2',dataset,'%y4','%m2','%d2'))
+ if tstep == "MONTHLY":
+  fp.write('dset ^%s%s/%s_%s%s_monthly.nc\n' % ('%y4','%m2',dataset,'%y4','%m2'))
+ if tstep == "YEARLY":
+  fp.write('dset ^%s/%s_%s_yearly.nc\n' % ('%y4',dataset,'%y4'))
  fp.write('options template\n')
  fp.write('dtype netcdf\n')
- fp.write('tdef t %d linear %s %s\n' % (22128,'1JAN1948','1dy'))
+ if tstep == "DAILY":
+  fp.write('tdef t %d linear %s %s\n' % (nt,datetime2gradstime(idate),'1dy'))
+ if tstep == "MONTHLY":
+  fp.write('tdef t %d linear %s %s\n' % (nt,datetime2gradstime(idate),'1mo'))
+ if tstep == "YEARLY":
+  fp.write('tdef t %d linear %s %s\n' % (nt,datetime2gradstime(idate),'1yr'))
  fp.close()
-
- #Download the monthly file
-
- #Make sure the daily directory exists
- #ga("sdfopen %s/MONTHLY" % http_root)
-
- #ga("close 1")
-
- #Download the yearly file
- #ga("sdfopen %s/YEARLY" % http_root)
-
- #ga("close 1")
 
  return
 
@@ -205,4 +256,80 @@ def Create_Image(file,data):
  #os.system("convert %s -trim %s" % (file,file))
 
  return
- 
+
+def Create_and_Update_Point_Data(date,dataset,idate,tstep):
+
+ #Define current time step
+ if tstep == "DAILY":
+  t = (date - idate).days
+ if tstep == "MONTHLY":
+  t = relativedelta.relativedelta(date - idate).month
+ if tstep == "YEARLY":
+  t = (date - idate).year
+
+ #Create mask
+ ga("xdfopen ../DATA/DAILY/pgf_daily.ctl")
+ ga("mask = const(const(prec,1),0,-u)")
+ mask = ga.exp("mask")
+ ga("close 1")
+ lats = mask.grid.lat[0:10]
+ lons = mask.grid.lon[0:10]
+
+ #Open dataset control file and read information
+ ga("xdfopen ../DATA/%s/%s.ctl" % (tstep,dataset))
+ group = dataset
+ variables = ga.query("file").vars
+
+ #Iterate through grid cells
+ for ilat in range(lats.size):
+  print lats[ilat]
+  for ilon in range(lons.size):
+   if mask[ilat,ilon] != -9.99e+08:
+    #Assign region
+    ga("set lat %f" % lats[ilat])
+    ga("set lon %f" % lons[ilon])
+
+    #Determine if file exists 
+    file = '../DATA/CELL/cell_%0.3f_%0.3f.nc' % (lats[ilat],lons[ilon])
+    if os.path.exists(file) == False:
+     fp = netcdf.Dataset(file,'w',format='NETCDF4')
+    else:
+     fp = netcdf.Dataset(file,'a',format='NETCDF4')
+
+    #Determine if group exists
+    try:
+     grp = fp.groups[group]
+    except:
+     grp = fp.createGroup(group)
+
+    #Determine if dimensions exist
+    try:
+     dim = grp.dimensions['time']
+    except:
+     dim = grp.createDimension('time',None)
+
+    #Determine if time variable exists
+    try: 
+     time = grp.variables['time']
+    except:
+     time = grp.createVariable('time','d',('time',))
+
+    for variable in variables:
+     #Determine if variables exist
+     try:
+      var = grp.variables[variable]
+     except:
+      var = grp.createVariable(variable,'f4',('time',))
+
+     #Assign data
+     data = ga.eval(variable)
+     var[t] = data
+     time[t] = int(date.strftime("%s"))
+     
+    #Close the file
+    fp.close() 
+  
+ #Close the grads file
+ ga("close 1")
+
+ return

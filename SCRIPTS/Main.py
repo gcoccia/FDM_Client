@@ -25,8 +25,8 @@ dims['maxlon'] = dims['minlon'] + dims['res']*(dims['nlon']-1)
 dt = datetime.timedelta(days=1)
 date = datetime.datetime.today()
 idate = datetime.datetime(date.year,date.month,date.day) - 6*dt
-idate = datetime.datetime(1948,1,1)
-fdate = datetime.datetime(1948,1,10)
+idate = datetime.datetime(2001,1,1)
+fdate = datetime.datetime(2001,12,31)
 
 #2. Download all the requested data
 date = idate
@@ -41,8 +41,15 @@ while date <= fdate:
  #DOWNLOAD ALL THE REQUIRED DATA
  #################################################
 
- #PGF forcing (historical)
- cl.Download_and_Process_Forcing(date,dims)
+ #PGF
+ cl.Download_and_Process(date,dims,'DAILY','PGF')
+ cl.Download_and_Process(date,dims,'MONTHLY','PGF')
+ cl.Download_and_Process(date,dims,'YEARLY','PGF')
+ 
+ #3B42RT_BC
+ cl.Download_and_Process(date,dims,'DAILY','3B42RT_BC')
+ cl.Download_and_Process(date,dims,'MONTHLY','3B42RT_BC')
+ cl.Download_and_Process(date,dims,'YEARLY','3B42RT_BC')
 
  #################################################
  #CREATE ALL IMAGES
@@ -50,6 +57,13 @@ while date <= fdate:
 
  #PGF forcing (historical
  #cl.Create_Images(date,dims,'pgf_daily','DAILY')
+
+ #################################################
+ #UPDATE CELL FILES
+ #################################################
+
+ #idate_pgf = datetime.datetime(1950,1,1)
+ #cl.Create_and_Update_Point_Data(date,'pgf_daily',idate_pgf,'DAILY')
 
  date = date + dt
 
