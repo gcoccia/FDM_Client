@@ -11,22 +11,45 @@ import Library as cl
 import datetime
 import numpy as np
 
+def Read_and_Process_Main_Info():
+
+ #Declare dimensions dictionary
+ dims = {}
+ datasets = {}
+ file = "INPUT.txt"
+ fp = open(file,'r')
+ for line in fp:
+  array = line.split()
+  if array[0] != '#':
+   if array[0] == "DIMENSIONS":
+    dims[array[1]] = float(array[2])
+   if array[0] == "VARIABLE":
+    dataset = array[1]
+    try:
+     datasets[dataset]
+    except:
+     datasets[dataset] = {}
+    variable = array[2]
+    datasets[dataset][variable] = {}
+    datasets[dataset][variable]['units'] = array[3]
+    datasets[dataset][variable]['group'] = array[4]
+    datasets[dataset][variable]['timestep'] = array[5]
+ 
+ #Finish up the dimensions array
+ dims['nlat'] = int(dims['nlat'])
+ dims['nlon'] = int(dims['nlon'])
+ dims['maxlat'] = dims['minlat'] + dims['res']*(dims['nlat']-1)
+ dims['maxlon'] = dims['minlon'] + dims['res']*(dims['nlon']-1)
+
+ return (dims,datasets)
+ 
 #1. Determine the dimensions
-dims = {}
-dims['minlat'] = -34.875 #-89.8750
-dims['minlon'] = -18.875 #0.1250
-dims['maxlat'] = 37.875
-dims['maxlon'] = 54.875
-dims['res'] = 0.25
-dims['nlat'] = np.int(np.ceil((dims['maxlat'] - dims['minlat'])/ dims['res'] + 1))
-dims['nlon'] = np.int(np.ceil((dims['maxlon'] - dims['minlon'])/ dims['res'] + 1))
-dims['maxlat'] = dims['minlat'] + dims['res']*(dims['nlat']-1)
-dims['maxlon'] = dims['minlon'] + dims['res']*(dims['nlon']-1)
+(dims,datasets) = Read_and_Process_Main_Info()
 dt = datetime.timedelta(days=1)
 date = datetime.datetime.today()
 idate = datetime.datetime(date.year,date.month,date.day) - 6*dt
-idate = datetime.datetime(2001,1,1)
-fdate = datetime.datetime(2001,12,31)
+idate = datetime.datetime(1948,1,1)
+fdate = datetime.datetime(1949,1,1)
 
 #2. Download all the requested data
 date = idate
@@ -37,33 +60,14 @@ while date <= fdate:
  #Setup routines
  cl.Setup_Routines(date)
 
- #################################################
- #DOWNLOAD ALL THE REQUIRED DATA
- #################################################
+ #For each availabe data set:
+ for dataset in datasets:
 
- #PGF
- cl.Download_and_Process(date,dims,'DAILY','PGF')
- cl.Download_and_Process(date,dims,'MONTHLY','PGF')
- cl.Download_and_Process(date,dims,'YEARLY','PGF')
- 
- #3B42RT_BC
- cl.Download_and_Process(date,dims,'DAILY','3B42RT_BC')
- cl.Download_and_Process(date,dims,'MONTHLY','3B42RT_BC')
- cl.Download_and_Process(date,dims,'YEARLY','3B42RT_BC')
+  #Download and process the data
+  cl.Download_and_Process(date,dims,'DAILY',dataset,datasets[dataset])
 
- #################################################
- #CREATE ALL IMAGES
- #################################################
-
- #PGF forcing (historical
- #cl.Create_Images(date,dims,'pgf_daily','DAILY')
-
- #################################################
- #UPDATE CELL FILES
- #################################################
-
- #idate_pgf = datetime.datetime(1950,1,1)
- #cl.Create_and_Update_Point_Data(date,'pgf_daily',idate_pgf,'DAILY')
+  #Create and update the point data
+  cl.Create_and_Update_Point_Data(date,'DAILY',dataset,datasets[dataset])
 
  date = date + dt
 

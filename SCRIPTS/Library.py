@@ -131,7 +131,7 @@ def Create_NETCDF_File(dims,file,vars,vars_info,tinitial,tstep,nt):
 
  return f
 
-def Download_and_Process(date,dims,tstep,dataset):
+def Download_and_Process(date,dims,tstep,dataset,info):
 
  #If monthly time step only extract at end of month
  if tstep == "MONTHLY" and (date + datetime.timedelta(days=1)).month == date.month:
@@ -149,8 +149,13 @@ def Download_and_Process(date,dims,tstep,dataset):
 
  #Extract basic info
  qh = ga.query("file")
- vars = qh.vars
- vars_info = qh.var_titles
+ vars = []
+ vars_info = []
+ vars_file = qh.vars
+ vars_info_file = qh.var_titles
+ for var in info:
+  vars.append(var)
+  vars_info.append(vars_info_file[vars_file.index(var)])
  nt = qh.nt
  ga("set t 1")
  idate = gradstime2datetime(ga.exp(vars[0]).grid.time[0])
@@ -257,37 +262,74 @@ def Create_Image(file,data):
 
  return
 
-def Create_and_Update_Point_Data(date,dataset,idate,tstep):
+def Create_and_Update_Point_Data(date,tstep,dataset,info):
+
+ #If monthly time step only extract at end of month
+ if tstep == "MONTHLY" and (date + datetime.timedelta(days=1)).month == date.month:
+  return
+ #If yearly time step only extract at end of month
+ if tstep == "YEARLY" and (date + datetime.timedelta(days=1)).year == date.year:
+  return
+
+ #Create mask
+ ga("xdfopen ../DATA/DAILY/VIC_PGF_DAILY.ctl")
+ ga("mask = const(const(sm1,1),0,-u)")
+ mask = ga.exp("mask")
+ ga("close 1")
+ lats = mask.grid.lat[0:2]
+ lons = mask.grid.lon#[0:100]
+ mask = np.ma.getdata(mask)
+
+ #Open dataset control file and read information
+ ga("xdfopen ../DATA/%s/%s_%s.ctl" % (tstep,dataset,tstep))
+ group = dataset
+ vars_file = ga.query("file").vars
+ vars_info_file = ga.query("file").var_titles
+ variables = []
+ for var in info:
+  variables.append(var)
+  #vars_info.append(vars_info_file[vars_file.index(var)])
+ ga("set t 1")
+ idate = gradstime2datetime(ga.exp(variables[0]).grid.time[0])
 
  #Define current time step
  if tstep == "DAILY":
   t = (date - idate).days
  if tstep == "MONTHLY":
-  t = relativedelta.relativedelta(date - idate).month
+  t = date.month - idate.month + (date.year - idate.year) * 12
+  date = datetime.datetime(date.year,date.month,1)
  if tstep == "YEARLY":
-  t = (date - idate).year
+  t = date.year - idate.year
+  date = datetime.datetime(date.year,1,1)
 
- #Create mask
- ga("xdfopen ../DATA/DAILY/pgf_daily.ctl")
- ga("mask = const(const(prec,1),0,-u)")
- mask = ga.exp("mask")
- ga("close 1")
- lats = mask.grid.lat[0:10]
- lons = mask.grid.lon[0:10]
+ #Leave if before initial time step
+ if date < idate:
+  ga("close 1")
+  return
 
- #Open dataset control file and read information
- ga("xdfopen ../DATA/%s/%s.ctl" % (tstep,dataset))
- group = dataset
- variables = ga.query("file").vars
+ #Define current time step
+ if tstep == "DAILY":
+  t = (date - idate).days
+ if tstep == "MONTHLY":
+  t = date.month - idate.month + (date.year - idate.year) * 12
+  date = datetime.datetime(date.year,date.month,1)
+ if tstep == "YEARLY":
+  t = date.year - idate.year
+  date = datetime.datetime(date.year,1,1)
 
  #Iterate through grid cells
+ ga("set time %s" % datetime2gradstime(date))
+ data = []
+ for var in variables:
+  data.append(ga.exp(var))
+
  for ilat in range(lats.size):
-  print lats[ilat]
   for ilon in range(lons.size):
-   if mask[ilat,ilon] != -9.99e+08:
+   if mask[ilat,ilon] != 0:
+    print lats[ilat],lons[ilon]
     #Assign region
-    ga("set lat %f" % lats[ilat])
-    ga("set lon %f" % lons[ilon])
+    #ga("set lat %f" % lats[ilat])
+    #ga("set lon %f" % lons[ilon])
 
     #Determine if file exists 
     file = '../DATA/CELL/cell_%0.3f_%0.3f.nc' % (lats[ilat],lons[ilon])
@@ -296,11 +338,17 @@ def Create_and_Update_Point_Data(date,dataset,idate,tstep):
     else:
      fp = netcdf.Dataset(file,'a',format='NETCDF4')
 
-    #Determine if group exists
+    #Determine if time step group exists
     try:
-     grp = fp.groups[group]
+     grp_tstep = fp.groups[tstep]
     except:
-     grp = fp.createGroup(group)
+     grp_tstep = fp.createGroup(tstep)
+
+    #Determine if the dataset group exists
+    try:
+     grp = grp_tstep.groups[group]
+    except:
+     grp = grp_tstep.createGroup(group)
 
     #Determine if dimensions exist
     try:
@@ -314,6 +362,7 @@ def Create_and_Update_Point_Data(date,dataset,idate,tstep):
     except:
      time = grp.createVariable('time','d',('time',))
 
+    ivar = 0
     for variable in variables:
      #Determine if variables exist
      try:
@@ -322,9 +371,11 @@ def Create_and_Update_Point_Data(date,dataset,idate,tstep):
       var = grp.createVariable(variable,'f4',('time',))
 
      #Assign data
-     data = ga.eval(variable)
-     var[t] = data
+     #data = ga.eval(variable)
+     #data = variable#ga.eval(variable)
+     var[t] = data[ivar][ilat,ilon]
      time[t] = int(date.strftime("%s"))
+     ivar = ivar + 1
      
     #Close the file
     fp.close() 
