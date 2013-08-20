@@ -149,13 +149,15 @@ def Download_and_Process(date,dims,tstep,dataset,info):
 
  #Extract basic info
  qh = ga.query("file")
- vars = []
- vars_info = []
- vars_file = qh.vars
- vars_info_file = qh.var_titles
- for var in info:
-  vars.append(var)
-  vars_info.append(vars_info_file[vars_file.index(var)])
+ #vars = []
+ #vars_info = []
+ #vars_file = qh.vars
+ #vars_info_file = qh.var_titles
+ #for var in info:
+ # vars.append(var)
+ # vars_info.append(vars_info_file[vars_file.index(var)])
+ vars = qh.vars
+ vars_info = qh.var_titles
  nt = qh.nt
  ga("set t 1")
  idate = gradstime2datetime(ga.exp(vars[0]).grid.time[0])
@@ -276,12 +278,15 @@ def Create_and_Update_Point_Data(date,tstep,dataset,info):
  ga("mask = const(const(sm1,1),0,-u)")
  mask = ga.exp("mask")
  ga("close 1")
- lats = mask.grid.lat[0:2]
+ lats = mask.grid.lat#[0:2]
  lons = mask.grid.lon#[0:100]
  mask = np.ma.getdata(mask)
 
  #Open dataset control file and read information
- ga("xdfopen ../DATA/%s/%s_%s.ctl" % (tstep,dataset,tstep))
+ try:
+  ga("xdfopen ../DATA/%s/%s_%s.ctl" % (tstep,dataset,tstep))
+ except:
+  return
  group = dataset
  vars_file = ga.query("file").vars
  vars_info_file = ga.query("file").var_titles
@@ -324,9 +329,9 @@ def Create_and_Update_Point_Data(date,tstep,dataset,info):
   data.append(ga.exp(var))
 
  for ilat in range(lats.size):
+  print lats[ilat]
   for ilon in range(lons.size):
    if mask[ilat,ilon] != 0:
-    print lats[ilat],lons[ilon]
     #Assign region
     #ga("set lat %f" % lats[ilat])
     #ga("set lon %f" % lons[ilon])

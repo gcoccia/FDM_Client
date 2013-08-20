@@ -48,8 +48,8 @@ def Read_and_Process_Main_Info():
 dt = datetime.timedelta(days=1)
 date = datetime.datetime.today()
 idate = datetime.datetime(date.year,date.month,date.day) - 6*dt
-idate = datetime.datetime(1948,1,1)
-fdate = datetime.datetime(1949,1,1)
+idate = datetime.datetime(2002,1,1)
+fdate = datetime.datetime(2002,1,1)
 
 #2. Download all the requested data
 date = idate
