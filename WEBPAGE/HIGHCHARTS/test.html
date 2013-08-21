@@ -87,16 +87,14 @@ function UpdateChart(variable){
  if (chart.get(variable) != undefined){ 
   chart.get(variable).remove();
  }
- //Function to add series and axis
- $('#add').click(function() {
-  variable = $('#variable').val();
+ else{
   VARIABLE = DATA["VARIABLES"][variable];
   var yAxis = {
    min: VARIABLE["minval"],
    max: VARIABLE["maxval"],
    opposite: false,
    title: {text: VARIABLE["long_name"] + " (" + VARIABLE["units"] + ")"},
-   id: VARIABLE["units"]
+   id: variable
   }
   var series = {
    data: VARIABLE["data"],
@@ -104,12 +102,12 @@ function UpdateChart(variable){
    id: variable,
    pointInterval: DATA["TIME"]["pointInterval"],
    pointStart: Date.UTC(DATA["TIME"]["iyear"],DATA["TIME"]["imonth"]-1,DATA["TIME"]["iday"]),
-   yAxis: VARIABLE["units"],
+   yAxis: variable,
   };
   chart.addAxis(yAxis,false);
   chart.addSeries(series,false);
   chart.redraw();
- });
+ };
 }; 
 
 function LoadInitialInfo(){
@@ -123,9 +121,6 @@ function LoadInitialInfo(){
 
   <body>
     <div id="container"></div>
-    <div id="controls" align="center"></div>
-    <button id="add">Add series</button>
-    <button id="remove">Remove series</button>
     <div id="series"></div>
   </body>
 </html>
