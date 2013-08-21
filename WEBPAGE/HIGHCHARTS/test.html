@@ -1,0 +1,131 @@
+<html>
+  <head>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+    <script src="http://code.highcharts.com/highcharts.js" type="text/javascript"></script>
+    <script src="http://code.highcharts.com/modules/exporting.js" type="text/javascript"></script>
+    <script type="text/javascript"> 
+
+/*Declare variables*/
+var data_in;
+var chart;
+var varinfo = {
+	name:[]
+	}
+
+var options = {
+    chart: {
+        defaultSeriesType: 'spline',
+	zoomType: 'x',
+    	},
+    xAxis: {type: 'datetime',},
+    yAxis: [],
+    series: [],
+    legend: {layout: 'vertical',align: 'right',verticalAlign: 'middle',},
+};
+
+/*Obtain all the data at once from the server*/
+$.ajax({
+ url: 'FetchStationData.php',
+ success: function(data){
+ DATA = eval('(' + data + ')');
+ },
+ async: false,
+ cache: false
+});	
+
+/*Push all variables to the chart*/
+variable = "spi1"
+VARIABLE = DATA["VARIABLES"][variable]
+var series = {
+ data: VARIABLE["data"],
+ name: variable,
+ pointInterval: DATA["TIME"]["pointInterval"],
+ pointStart: Date.UTC(DATA["TIME"]["iyear"],DATA["TIME"]["imonth"]-1,DATA["TIME"]["iday"]),
+ yAxis: VARIABLE["units"],
+ id: variable,
+};
+//opposite = false
+//if (ivar%2 != 0){opposite = true}
+var yAxis = {
+ min: VARIABLE["minval"],
+ max: VARIABLE["maxval"],
+ opposite: false,
+ title: {text: VARIABLE["long_name"] + " (" + VARIABLE["units"] + ")"},
+ id: VARIABLE["units"]
+}
+//options.series.push(series);
+//options.yAxis.push(yAxis)
+
+$(function() {
+ LoadInitialInfo();
+ $('#container').highcharts(options);
+ var chart = $('#container').highcharts(); 
+
+ //Create the time step choice
+ $('#controls').append('Timestep: <select id="timestep"></select>')
+ for (tstep in info){
+  $('#timestep').append('<option value="' + tstep + '">' + tstep + '</option')
+ }
+ //Create the dataset choice
+ $('#controls').append('Dataset: <select id="dataset"></select>')
+ tstep = "daily"
+ for (dataset in info[tstep]){
+  $('#dataset').append('<option value="' + dataset + '">' + dataset+ '</option')
+ }
+ //Variables
+ dataset = "pgf"
+ $('#controls').append('Variable: <select id="variable"></select>')
+ for (variable in info[tstep][dataset]){
+  $('#variable').append('<option value="' + variable + '">' + variable + '</option')
+  }
+
+});
+
+function UpdateChart(variable){
+
+ chart = $('#container').highcharts();
+ if (chart.get(variable) != undefined){ 
+  chart.get(variable).remove();
+ }
+ //Function to add series and axis
+ $('#add').click(function() {
+  variable = $('#variable').val();
+  VARIABLE = DATA["VARIABLES"][variable];
+  var yAxis = {
+   min: VARIABLE["minval"],
+   max: VARIABLE["maxval"],
+   opposite: false,
+   title: {text: VARIABLE["long_name"] + " (" + VARIABLE["units"] + ")"},
+   id: VARIABLE["units"]
+  }
+  var series = {
+   data: VARIABLE["data"],
+   name: variable,
+   id: variable,
+   pointInterval: DATA["TIME"]["pointInterval"],
+   pointStart: Date.UTC(DATA["TIME"]["iyear"],DATA["TIME"]["imonth"]-1,DATA["TIME"]["iday"]),
+   yAxis: VARIABLE["units"],
+  };
+  chart.addAxis(yAxis,false);
+  chart.addSeries(series,false);
+  chart.redraw();
+ });
+}; 
+
+function LoadInitialInfo(){
+ for (variable in DATA["VARIABLES"]){
+  $('#series').append('<input type="checkbox" id="' + variable + '" onclick=UpdateChart("' + variable + '")>' + variable + ' ')
+ }
+};
+  
+    </script>
+  </head>
+
+  <body>
+    <div id="container"></div>
+    <div id="controls" align="center"></div>
+    <button id="add">Add series</button>
+    <button id="remove">Remove series</button>
+    <div id="series"></div>
+  </body>
+</html>

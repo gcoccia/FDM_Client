@@ -264,13 +264,15 @@ def Create_Image(file,data):
 
  return
 
-def Create_and_Update_Point_Data(date,tstep,dataset,info):
+def Create_and_Update_Point_Data(idate,fdate,tstep,dataset,info):
 
+ #Only works for daily for now
  #If monthly time step only extract at end of month
- if tstep == "MONTHLY" and (date + datetime.timedelta(days=1)).month == date.month:
+ print tstep
+ if tstep == "MONTHLY" and ((fdate+datetime.timedelta(days=1)).month == idate.month) and ((fdate+datetime.timedelta(days=1)).year == idate.year):
   return
  #If yearly time step only extract at end of month
- if tstep == "YEARLY" and (date + datetime.timedelta(days=1)).year == date.year:
+ if tstep == "YEARLY" and ((fdate+datetime.timedelta(days=1)).year == idate.year):
   return
 
  #Create mask
@@ -278,7 +280,7 @@ def Create_and_Update_Point_Data(date,tstep,dataset,info):
  ga("mask = const(const(sm1,1),0,-u)")
  mask = ga.exp("mask")
  ga("close 1")
- lats = mask.grid.lat#[0:2]
+ lats = mask.grid.lat[0:2]
  lons = mask.grid.lon#[0:100]
  mask = np.ma.getdata(mask)
 
@@ -295,38 +297,47 @@ def Create_and_Update_Point_Data(date,tstep,dataset,info):
   variables.append(var)
   #vars_info.append(vars_info_file[vars_file.index(var)])
  ga("set t 1")
- idate = gradstime2datetime(ga.exp(variables[0]).grid.time[0])
+ idate_dataset = gradstime2datetime(ga.exp(variables[0]).grid.time[0])
 
  #Define current time step
  if tstep == "DAILY":
-  t = (date - idate).days
+  t_initial = (idate - idate_dataset).days
+  t_final = (fdate - idate_dataset).days
  if tstep == "MONTHLY":
-  t = date.month - idate.month + (date.year - idate.year) * 12
-  date = datetime.datetime(date.year,date.month,1)
+  t_initial = idate.month - idate_dataset.month + (idate.year - idate_dataset.year) * 12
+  t_final = fdate.month - idate_dataset.month + (fdate.year - idate_dataset.year) * 12
+  idate = datetime.datetime(idate.year,idate.month,1)
+  fdate = datetime.datetime(fdate.year,fdate.month,1)
  if tstep == "YEARLY":
-  t = date.year - idate.year
-  date = datetime.datetime(date.year,1,1)
+  t_initial = idate.year - idate_dataset.year
+  t_final = fdate.year - idate_dataset.year
+  idate = datetime.datetime(idate.year,1,1)
+  fdate = datetime.datetime(fdate.year,1,1)
 
  #Leave if before initial time step
- if date < idate:
+ if idate < idate_dataset:
   ga("close 1")
   return
 
- #Define current time step
- if tstep == "DAILY":
-  t = (date - idate).days
- if tstep == "MONTHLY":
-  t = date.month - idate.month + (date.year - idate.year) * 12
-  date = datetime.datetime(date.year,date.month,1)
- if tstep == "YEARLY":
-  t = date.year - idate.year
-  date = datetime.datetime(date.year,1,1)
-
  #Iterate through grid cells
- ga("set time %s" % datetime2gradstime(date))
+ ga("set time %s %s" % (datetime2gradstime(idate),datetime2gradstime(fdate)))
  data = []
  for var in variables:
   data.append(ga.exp(var))
+
+ #Create date string
+ if tstep == "DAILY": 
+  dt = datetime.timedelta(days=1)
+ if tstep == "MONTHLY": 
+  dt = relativedelta.relativedelta(months=1)
+ if tstep == "YEARLY": 
+  dt = relativedelta.relativedelta(years=1)
+
+ time_str = []
+ date = idate
+ while date <= fdate:
+  time_str.append(int(date.strftime("%s")))
+  date = date + dt
 
  for ilat in range(lats.size):
   print lats[ilat]
@@ -365,7 +376,7 @@ def Create_and_Update_Point_Data(date,tstep,dataset,info):
     try: 
      time = grp.variables['time']
     except:
-     time = grp.createVariable('time','d',('time',))
+     time = grp.createVariable('time','i4',('time',))
 
     ivar = 0
     for variable in variables:
@@ -378,8 +389,11 @@ def Create_and_Update_Point_Data(date,tstep,dataset,info):
      #Assign data
      #data = ga.eval(variable)
      #data = variable#ga.eval(variable)
-     var[t] = data[ivar][ilat,ilon]
-     time[t] = int(date.strftime("%s"))
+     if t_final - t_initial == 0:
+      var[t_initial:t_final+1] = data[ivar][ilat,ilon]
+     else:
+      var[t_initial:t_final+1] = data[ivar][:,ilat,ilon]
+     time[t_initial:t_final+1] = time_str
      ivar = ivar + 1
      
     #Close the file

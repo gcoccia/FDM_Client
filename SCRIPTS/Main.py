@@ -30,10 +30,14 @@ def Read_and_Process_Main_Info():
     except:
      datasets[dataset] = {}
     variable = array[2]
-    datasets[dataset][variable] = {}
-    datasets[dataset][variable]['units'] = array[3]
-    datasets[dataset][variable]['group'] = array[4]
-    datasets[dataset][variable]['timestep'] = array[5]
+    try: 
+     datasets[dataset]['variables']
+    except:
+     datasets[dataset]['variables'] = {}
+     datasets[dataset]['timestep'] = array[5].split('/')
+    datasets[dataset]['variables'][variable] = {}
+    datasets[dataset]['variables'][variable]['units'] = array[3]
+    datasets[dataset]['variables'][variable]['group'] = array[4]
  
  #Finish up the dimensions array
  dims['nlat'] = int(dims['nlat'])
@@ -48,8 +52,8 @@ def Read_and_Process_Main_Info():
 dt = datetime.timedelta(days=1)
 date = datetime.datetime.today()
 idate = datetime.datetime(date.year,date.month,date.day) - 6*dt
-idate = datetime.datetime(2002,1,1)
-fdate = datetime.datetime(2002,1,1)
+idate = datetime.datetime(2001,1,1)
+fdate = datetime.datetime(2001,12,31)
 
 #2. Download all the requested data
 date = idate
@@ -62,13 +66,21 @@ while date <= fdate:
 
  #For each availabe data set:
  for dataset in datasets:
-
-  #Download and process the data
-  cl.Download_and_Process(date,dims,'DAILY',dataset,datasets[dataset])
+  for tstep in datasets[dataset]['timestep']:
+   print "%s %s" % (dataset,tstep)
+   #Download and process the data
+   #cl.Download_and_Process(date,dims,tstep,dataset,datasets[dataset]['variables'])
 
   #Create and update the point data
-  cl.Create_and_Update_Point_Data(date,'DAILY',dataset,datasets[dataset])
+  #cl.Create_and_Update_Point_Data(date,'DAILY',dataset,datasets[dataset])
 
  date = date + dt
+
+#3. Create and update the point data
+
+for dataset in datasets:
+ for tstep in datasets[dataset]['timestep']:
+  print "%s %s" % (dataset,tstep)
+  cl.Create_and_Update_Point_Data(idate,fdate,tstep,dataset,datasets[dataset]['variables'])
 
 #3. Create images and new files
