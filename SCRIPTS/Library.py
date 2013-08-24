@@ -214,52 +214,83 @@ def Download_and_Process(date,dims,tstep,dataset,info):
 
  return
 
+def datetime2outputtime(date,timestep):
+ 
+ #Convert datetime to output time
+ if timestep == "DAILY":
+  str = date.strftime('%Y%m%d')
+ elif timestep == "MONTHLY":
+  str = date.strftime('%Y%m')
+ elif timestep == "YEARLY":
+  str = date.strftime('%Y')
+
+ return str
+
 def Create_Images(date,dims,dataset,timestep):
  
+ #Create mask
+ ga("xdfopen ../DATA/DAILY/VIC_PGF_DAILY.ctl")
+ ga("mask = const(const(sm1,1),-1,-u)")
+ mask = np.ma.getdata(ga.exp("mask"))
+ ga("close 1")
+
  #Open control file
- ga("xdfopen ../DATA/%s/%s.ctl" % (timestep,dataset))
+ ga("xdfopen ../DATA/%s/%s_%s.ctl" % (timestep,dataset,timestep))
+ #Define timestamp
+ date_output = datetime2outputtime(date,timestep) 
  #Extract all variable information
  qh = ga.query("file")
  #Create images for all variables
  for var in qh.vars:
-  image_file = '../IMAGES/DAILY/%04d%02d%02d/%s_%04d%02d%02d_daily.png'  % (date.year,date.month,date.day,var,date.year,date.month,date.day)
+  image_file = '../IMAGES/%s/%s/%s_%s_%s.png'  % (timestep,date_output,dataset,var,date_output)
   ga("set time %s" % datetime2gradstime(date))
-  data = ga.exp("%s" % var)
+  data = ga.exp("maskout(%s,mask)" % var)
+  #data = ga.exp("%s" % var)
+  #data = np.ma.masked_where(mask == 0,data)
   Create_Image(image_file,data)
+
  #Close access to file
  ga("close 1")
- 
 
  return
 
 def Create_Image(file,data):
 
  #Extract grid info
+ undef = -9.99e+08
  lats = data.grid.lat
  lons = data.grid.lon
- dpi = 50.0
- nlat = lats.size/dpi
- nlon = lons.size/dpi
- #levels = np.linspace(np.min(data),np.max(data),40)
- #levels[levels == 0.0] = 0.00001
- levels = [0,1,2.5,5,7.5,10,15,20,30,40,50,70,100,150,200,250,300,400,500,600,750]
- fig = plt.figure()#figsize=(nlon,nlat),dpi=dpi)
- #Take up the whole figure with a single axis
- ax = fig.add_axes([0, 0, 1, 1])
- ax.axis('off')
- #Create Basemap instance for mercator projection
+ #levels = [0,1,2.5,5,7.5,10,15,20,30,40,50,70,100,150,200,250,300,400,500,600,750]
+ #levels = np.linspace(np.min(data[np.isnan(data) == 0]),np.max(data[np.isnan(data) == 0]),20)
+ levels = np.linspace(np.min(data),np.max(data),30)
+ #Create Basemap instance for Google maps mercator projection
  res = lats[1] - lats[0]
- llcrnrlat = lats[0] - res/2
- urcrnrlat = lats[-1] + res/2
- llcrnrlon = lons[0] - res/2
- urcrnrlon = lons[-1] + res/2
- ax.m = Basemap(projection='merc',llcrnrlat=llcrnrlat,urcrnrlat=urcrnrlat,llcrnrlon=llcrnrlon,urcrnrlon=urcrnrlon)
- x, y = ax.m(*np.meshgrid(lons,lats))
- cs = ax.m.contourf(x,y,data,levels=levels,linewidhts=0,cmap=cm.s3pcpn,linestyles=None,linewidths=None)
- #cs = ax.m.imshow(data,interpolation='nearest')
- #plt.imshow(data,interpolation='none')
- plt.savefig(file,bbox_inches='tight')#,pad_inches=0.0,frame=None)
- #Remove surrounding white regions
+ llcrnrlat = lats[0]# - res/2
+ urcrnrlat = lats[-1]# + res/2
+ llcrnrlon = lons[0]# - res/2
+ urcrnrlon = lons[-1]# + res/2
+ m = Basemap(llcrnrlat=llcrnrlat,urcrnrlat=urcrnrlat,llcrnrlon=llcrnrlon,urcrnrlon=urcrnrlon,epsg=3857)
+ lons,lats = np.meshgrid(lons,lats)
+ width = 10
+ height = width*m.aspect
+ #Plot image
+ fig = plt.figure(frameon=False)
+ fig.set_size_inches(width,height)
+ ax = plt.Axes(fig,[0., 0., 1., 1.])
+ #ax.set_axis_bgcolor('none')
+ ax.set_axis_off()
+ ax.m = m
+ fig.add_axes(ax)
+ plt.axis('off')
+ #x,y = m(x,y)
+ #x, y = m(*np.meshgrid(lons,lats))
+ #cs = m.contourf(x,y,data,levels=levels,linewidhts=0,cmap=cm.s3pcpn,linestyles=None,linewidths=None)
+ #cs = m.contourf(x,y,data,linewidhts=0,cmap=cm.s3pcpn,linestyles=None,linewidths=None)
+ cs = m.pcolormesh(lons,lats,data,latlon=True,shading='flat')
+ #cs = m.contourf(lons,lats,data,latlon=True,levels=levels)
+ #cs = m.imshow(data,interpolation='nearest')
+ #plt.imshow(np.flipud(data),interpolation='nearest')
+ plt.savefig(file,transparent=True)#,pad_inches=0.0,bbox_inches='tight')#,transparent=True)
  #os.system("convert %s -trim %s" % (file,file))
 
  return

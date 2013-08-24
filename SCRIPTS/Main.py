@@ -53,7 +53,7 @@ dt = datetime.timedelta(days=1)
 date = datetime.datetime.today()
 idate = datetime.datetime(date.year,date.month,date.day) - 6*dt
 idate = datetime.datetime(2001,1,1)
-fdate = datetime.datetime(2001,12,31)
+fdate = datetime.datetime(2001,1,1)
 
 #2. Download all the requested data
 date = idate
@@ -62,7 +62,7 @@ while date <= fdate:
  print date
 
  #Setup routines
- cl.Setup_Routines(date)
+ #cl.Setup_Routines(date)
 
  #For each availabe data set:
  for dataset in datasets:
@@ -70,9 +70,9 @@ while date <= fdate:
    print "%s %s" % (dataset,tstep)
    #Download and process the data
    #cl.Download_and_Process(date,dims,tstep,dataset,datasets[dataset]['variables'])
-
-  #Create and update the point data
-  #cl.Create_and_Update_Point_Data(date,'DAILY',dataset,datasets[dataset])
+   
+   #Create Images
+   cl.Create_Images(date,dims,dataset,tstep)
 
  date = date + dt
 

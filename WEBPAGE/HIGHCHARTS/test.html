@@ -13,14 +13,8 @@ var varinfo = {
 	}
 
 var options = {
-    chart: {
-        defaultSeriesType: 'spline',
-	zoomType: 'x',
-    	},
     xAxis: {type: 'datetime',},
-    yAxis: [],
-    series: [],
-    legend: {layout: 'vertical',align: 'right',verticalAlign: 'middle',},
+    legend: {layout: 'horizontal',align: 'center',verticalAlign: 'bottom',},
 };
 
 /*Obtain all the data at once from the server*/
@@ -33,52 +27,10 @@ $.ajax({
  cache: false
 });	
 
-/*Push all variables to the chart*/
-variable = "spi1"
-VARIABLE = DATA["VARIABLES"][variable]
-var series = {
- data: VARIABLE["data"],
- name: variable,
- pointInterval: DATA["TIME"]["pointInterval"],
- pointStart: Date.UTC(DATA["TIME"]["iyear"],DATA["TIME"]["imonth"]-1,DATA["TIME"]["iday"]),
- yAxis: VARIABLE["units"],
- id: variable,
-};
-//opposite = false
-//if (ivar%2 != 0){opposite = true}
-var yAxis = {
- min: VARIABLE["minval"],
- max: VARIABLE["maxval"],
- opposite: false,
- title: {text: VARIABLE["long_name"] + " (" + VARIABLE["units"] + ")"},
- id: VARIABLE["units"]
-}
-//options.series.push(series);
-//options.yAxis.push(yAxis)
-
 $(function() {
  LoadInitialInfo();
  $('#container').highcharts(options);
  var chart = $('#container').highcharts(); 
-
- //Create the time step choice
- $('#controls').append('Timestep: <select id="timestep"></select>')
- for (tstep in info){
-  $('#timestep').append('<option value="' + tstep + '">' + tstep + '</option')
- }
- //Create the dataset choice
- $('#controls').append('Dataset: <select id="dataset"></select>')
- tstep = "daily"
- for (dataset in info[tstep]){
-  $('#dataset').append('<option value="' + dataset + '">' + dataset+ '</option')
- }
- //Variables
- dataset = "pgf"
- $('#controls').append('Variable: <select id="variable"></select>')
- for (variable in info[tstep][dataset]){
-  $('#variable').append('<option value="' + variable + '">' + variable + '</option')
-  }
-
 });
 
 function UpdateChart(variable){
@@ -86,41 +38,128 @@ function UpdateChart(variable){
  chart = $('#container').highcharts();
  if (chart.get(variable) != undefined){ 
   chart.get(variable).remove();
+  //Update y-axis limits
+  min_array = []
+  max_array = []
+  units = DATA["VARIABLES"][variable]["units"];
+  //Find current mins and maxs
+  flag_series_exists = false;
+  for (series in chart.series){
+   flag_series_exists = true;
+   if (chart.series[series].yAxis.options.id == units){
+    min_array.push(DATA["VARIABLES"][chart.series[series].name]["minval"]);
+    max_array.push(DATA["VARIABLES"][chart.series[series].name]["maxval"]);
+    }
+  }
+  //If we don't have any more series then erase the axis
+  if (flag_series_exists == false){
+   chart.get(units).remove();
+  };
+  yAxis_min = Math.min.apply(Math,min_array)
+  yAxis_max = Math.max.apply(Math,max_array)
+  //Set new limits
+  for (yAxis in chart.options.yAxis){
+   if (chart.options.yAxis[yAxis].id == units){
+    chart.yAxis[yAxis].setExtremes(yAxis_min,yAxis_max);
+    break
+   };
+  };
  }
  else{
   VARIABLE = DATA["VARIABLES"][variable];
-  var yAxis = {
-   min: VARIABLE["minval"],
-   max: VARIABLE["maxval"],
-   opposite: false,
-   title: {text: VARIABLE["long_name"] + " (" + VARIABLE["units"] + ")"},
-   id: variable
+  units = VARIABLE["units"]
+  dataset = VARIABLE["dataset"]
+  maxval = VARIABLE["maxval"]
+  minval = VARIABLE["minval"]
+  //Determine y axis limits
+  min_array = [VARIABLE["minval"],]
+  max_array = [VARIABLE["maxval"],]
+  flag_add_axis = true;
+  //Find current mins and maxs
+  for (series in chart.series){
+   if (chart.series[series].yAxis.options.id == units){
+    flag_add_axis = false;
+    min_array.push(DATA["VARIABLES"][chart.series[series].name]["minval"]);
+    max_array.push(DATA["VARIABLES"][chart.series[series].name]["maxval"]);
+    }
   }
+  yAxis_min = Math.min.apply(Math,min_array)
+  yAxis_max = Math.max.apply(Math,max_array)
+  //Define the new series
   var series = {
+   color: ($('input:radio[name=color]:checked').val()),
+   type: ($('input:radio[name=type]:checked').val()),
    data: VARIABLE["data"],
    name: variable,
    id: variable,
    pointInterval: DATA["TIME"]["pointInterval"],
    pointStart: Date.UTC(DATA["TIME"]["iyear"],DATA["TIME"]["imonth"]-1,DATA["TIME"]["iday"]),
-   yAxis: variable,
+   yAxis: units,
   };
-  chart.addAxis(yAxis,false);
+  //Create the new axis if necessary
+  if (flag_add_axis == true){
+   var yAxis = {
+    min: yAxis_min,
+    max: yAxis_max,
+    title: {text: units},
+    name: variable,
+    id: units
+   }
+   chart.addAxis(yAxis,false);
+  }
+  else{
+   for (yAxis in chart.options.yAxis){
+    if (chart.options.yAxis[yAxis].id == units){
+     chart.yAxis[yAxis].setExtremes(yAxis_min,yAxis_max,false);
+    };
+   };
+  };
   chart.addSeries(series,false);
   chart.redraw();
  };
-}; 
+};
+$('input:radio[name=sex]:checked').val();
 
 function LoadInitialInfo(){
  for (variable in DATA["VARIABLES"]){
   $('#series').append('<input type="checkbox" id="' + variable + '" onclick=UpdateChart("' + variable + '")>' + variable + ' ')
  }
+ $('#series').append('<br><input type="submit" value="Request Data">')
+ //var a = [2,4,5,6]
+ //alert(Math.min.apply(Math,a))
 };
+
+function PrepareData(){
+ chart = $('#container').highcharts();
+ for (id in chart['options']['yAxis']){
+  yAxis = chart['options']['yAxis'][id]
+ }
+}
   
     </script>
   </head>
 
   <body>
     <div id="container"></div>
-    <div id="series"></div>
+    <form id="series" action="Point_Data_Request.php" method="post"></form>
+    <!-- color -->
+    color:
+    <input type="radio" name="color" value="red" checked=checked>red
+    <input type="radio" name="color" value="blue">blue
+    <input type="radio" name="color" value="green">green
+    <br>
+    <!-- type -->
+    type: 
+    <input type="radio" name="type" value="line" checked=checked>line
+    <input type="radio" name="type" value="spline">spline
+    <input type="radio" name="type" value="area">area
+    <input type="radio" name="type" value="areaspline">area spline
+    <input type="radio" name="type" value="bar">bar
+    <br>
+    <!-- axis -->
+    <!-- marker -->
+    marker:
+    <!--<input type="radio" name="type" value="yes" checked=checked>line
+    <input type="radio" name="type" value="no">spline-->
   </body>
 </html>
