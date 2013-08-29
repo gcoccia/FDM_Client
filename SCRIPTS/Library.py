@@ -227,8 +227,17 @@ def datetime2outputtime(date,timestep):
  return str
 
 def Create_Images(date,dims,dataset,timestep):
+
+
+ #If monthly time step only extract at end of month
+ if timestep == "MONTHLY" and (date + datetime.timedelta(days=1)).month == date.month:
+  return
+
+ #If yearly time step only extract at end of month
+ if timestep == "YEARLY" and (date + datetime.timedelta(days=1)).year == date.year:
+  return
  
- #Create mask
+ #Load mask
  ga("xdfopen ../DATA/DAILY/VIC_PGF_DAILY.ctl")
  ga("mask = const(const(sm1,1),-1,-u)")
  mask = np.ma.getdata(ga.exp("mask"))

@@ -1,3 +1,4 @@
+import json
 import sys
 import smtplib
 from email.mime.text import MIMEText
@@ -53,8 +54,6 @@ def Create_NETCDF_File(dims,file,vars,vars_info,tinitial,tstep,nt):
  f.createVariable('lat','d',('lat',))
  f.variables['lat'][:] = np.linspace(minlat,minlat+res*(nlat-1),nlat)
  f.variables['lat'].units = 'degrees_north'
- f.variables['lat'].long_name = 'Latitude'
- f.variables['lat'].res = res
 
  #Time
  times = f.createVariable('t','d',('t',))
@@ -98,30 +97,31 @@ def Send_Email(txt):
 
  return
 
-#Read the command line arguments
-#tstep $llclat $llclon $urclat $urclon $iyear $imonth $iday $fyear $fmonth $fday $format $email $variables
-tstep = sys.argv[1]
-llclat = float(sys.argv[2])
-llclon = float(sys.argv[3])
-urclat = float(sys.argv[4])
-urclon = float(sys.argv[5])
-idate = datetime.datetime(int(sys.argv[6]),int(sys.argv[7]),int(sys.argv[8]))
-fdate = datetime.datetime(int(sys.argv[9]),int(sys.argv[10]),int(sys.argv[11]))
-format= sys.argv[12]
-email = sys.argv[13]
-variables = sys.argv[14].split("/")
-res = float(sys.argv[15])
+metadata = json.loads(raw_input())
+tstep = metadata['tstep']
+llclat = float(metadata['llclat'])
+llclon = float(metadata['llclon'])
+urclat = float(metadata['urclat'])
+urclon = float(metadata['urclon'])
+#idate = datetime.datetime(int(sys.argv[6]),int(sys.argv[7]),int(sys.argv[8]))
+#fdate = datetime.datetime(int(sys.argv[9]),int(sys.argv[10]),int(sys.argv[11]))
+idate = datetime.datetime.utcfromtimestamp(int(metadata['idate']))
+fdate = datetime.datetime.utcfromtimestamp(int(metadata['fdate']))
+format= metadata['format']
+email = metadata['email']
+variables = metadata['variables']
+res = float(metadata['sres'])
+#print metadata
 http_root = 'http://freeze.princeton.edu/'
 
 #Determine the time step
-print tstep
-if tstep == "daily":
+if tstep == "DAILY":
  dt = relativedelta.relativedelta(days=1)
  nt = (fdate-idate).days
-if tstep == "monthly":
+if tstep == "MONTHLY":
  dt = relativedelta.relativedelta(month=1)
  nt = (fdate-idate).days/30
-if tstep == "yearly":
+if tstep == "YEARLY":
  dt = relativedelta.relativedelta(year=1)
  nt = (fdate-idate).days/30
 
@@ -173,7 +173,7 @@ os.system("mkdir %s" % dir)
 grads_exe = '../LIBRARIES/grads-2.0.1.oga.1/Contents/grads'
 ga = grads.GrADS(Bin=grads_exe,Window=False,Echo=False)
 for var in variables:
- print var
+ #print var
 
  #Create directory for variable
  var_dir = dir + "/" + var
@@ -182,13 +182,14 @@ for var in variables:
  ctl_file = "../DATA/DAILY/%s_%s.ctl" % (dataset,tstep)
  ga("xdfopen %s" % ctl_file)
  date = idate
- var = var.split("_")[0] 
+ var = var.split("_")[0]
  qh = ga.query("file")
  var_info = qh.var_titles[qh.vars.index(var)]
 
  #Set grads region
  ga("set lat %f %f" % (dims['minlat'],dims['maxlat']))
  ga("set lon %f %f" % (dims['minlon'],dims['maxlon']))
+ print ctl_file
 
  while date <= fdate:
   time = datetime2gradstime(date)
@@ -219,3 +220,4 @@ os.system("rm -rf request_%d" % val)
 #Send the email confirming that it succeeded and the location of the zipped archive
 http_file = http_root  + "/ADM/WORKSPACE/request_%d.tar.gz" % val
 Send_Email("The data was processed and can be dowloaded at %s. The data will be removed in 6 hours." % http_file)
+

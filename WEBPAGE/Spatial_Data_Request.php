@@ -41,7 +41,8 @@ $email = $_POST["email"];
 $variables = implode("/",$_POST['variables']);
 
 #Run code to extract data and send email
-system("(python Spatial_Data_Request.py $tstep $llclat $llclon $urclat $urclon $iyear $imonth $iday $fyear $fmonth $fday $format $email $variables $sres >& /dev/null &) ");
+#system("(python Spatial_Data_Request.py $tstep $llclat $llclon $urclat $urclon $iyear $imonth $iday $fyear $fmonth $fday $format $email $variables $sres >& /dev/null &) ");
 #echo "python Spatial_Data_Request.py $tstep $llclat $llclon $urclat $urclon $iyear $imonth $iday $fyear $fmonth $fday $format $email $variables $sres";
+echo $_POST["llclat"]
 ?>
 

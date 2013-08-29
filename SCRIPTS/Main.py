@@ -52,8 +52,8 @@ def Read_and_Process_Main_Info():
 dt = datetime.timedelta(days=1)
 date = datetime.datetime.today()
 idate = datetime.datetime(date.year,date.month,date.day) - 6*dt
-idate = datetime.datetime(2001,1,1)
-fdate = datetime.datetime(2001,1,1)
+idate = datetime.datetime(1950,1,1)
+fdate = datetime.datetime(2008,12,31)
 
 #2. Download all the requested data
 date = idate
@@ -62,19 +62,21 @@ while date <= fdate:
  print date
 
  #Setup routines
- #cl.Setup_Routines(date)
+ cl.Setup_Routines(date)
 
  #For each availabe data set:
  for dataset in datasets:
   for tstep in datasets[dataset]['timestep']:
    print "%s %s" % (dataset,tstep)
+
    #Download and process the data
-   #cl.Download_and_Process(date,dims,tstep,dataset,datasets[dataset]['variables'])
+   cl.Download_and_Process(date,dims,tstep,dataset,datasets[dataset]['variables'])
    
    #Create Images
    cl.Create_Images(date,dims,dataset,tstep)
 
  date = date + dt
+exit()
 
 #3. Create and update the point data
 
