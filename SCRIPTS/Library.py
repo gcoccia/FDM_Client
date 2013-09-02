@@ -27,39 +27,33 @@ def Check_and_Make_Directory(dir):
 def Setup_Routines(date):
 
  #Setup the main directories
- dir = "../DATA"
+ dir = "../DATA_GRID"
+ Check_and_Make_Directory(dir)
+ dir = "../DATA_CELL"
  Check_and_Make_Directory(dir)
  dir = "../IMAGES"
  Check_and_Make_Directory(dir)
 
- #Setup the daily directories
- dir = "../DATA/DAILY"
- Check_and_Make_Directory(dir)
- dir = "../DATA/DAILY/%04d%02d%02d" % (date.year,date.month,date.day)
- Check_and_Make_Directory(dir)
- dir = "../IMAGES/DAILY"
- Check_and_Make_Directory(dir)
- dir = "../IMAGES/DAILY/%04d%02d%02d" % (date.year,date.month,date.day)
+ #Setup the control file directory
+ dir = "../DATA_GRID/CTL"
  Check_and_Make_Directory(dir)
 
- #Setup the monthly directories
- dir = "../DATA/MONTHLY"
+ #Setup the yearly directory
+ dir = "../DATA_GRID/%04d" % (date.year)
  Check_and_Make_Directory(dir)
- dir = "../DATA/MONTHLY/%04d%02d" % (date.year,date.month)
- Check_and_Make_Directory(dir)
- dir = "../IMAGES/MONTHLY"
- Check_and_Make_Directory(dir)
- dir = "../IMAGES/MONTHLY/%04d%02d" % (date.year,date.month)
+ dir = "../IMAGES/%04d" % (date.year)
  Check_and_Make_Directory(dir)
 
- #Setup the yearly directories
- dir = "../DATA/YEARLY"
+ #Setup the monthly directory
+ dir = "../DATA_GRID/%04d/%02d" % (date.year,date.month)
  Check_and_Make_Directory(dir)
- dir = "../DATA/YEARLY/%04d" % (date.year)
+ dir = "../IMAGES/%04d/%02d" % (date.year,date.month)
  Check_and_Make_Directory(dir)
- dir = "../IMAGES/YEARLY"
+
+ #Setup the daily directory
+ dir = "../DATA_GRID/%04d/%02d/%02d" % (date.year,date.month,date.day)
  Check_and_Make_Directory(dir)
- dir = "../IMAGES/YEARLY/%04d" % (date.year)
+ dir = "../IMAGES/%04d/%02d/%02d" % (date.year,date.month,date.day)
  Check_and_Make_Directory(dir)
 
  return
@@ -131,6 +125,43 @@ def Create_NETCDF_File(dims,file,vars,vars_info,tinitial,tstep,nt):
 
  return f
 
+def Create_Mask(dims):
+
+ #Define file
+ file = '../DATA_GRID/MASKS/mask.nc' 
+ if os.path.exists(file):
+  return
+
+ #Define http files
+ http_file1 = 'http://freeze.princeton.edu:9090/dods/AFRICAN_WATER_CYCLE_MONITOR/MASK'
+ http_file2 = 'http://freeze.princeton.edu:9090/dods/AFRICAN_WATER_CYCLE_MONITOR/MASK_200mm'
+
+ #Open file
+ ga("sdfopen %s" % http_file1)
+ ga("sdfopen %s" % http_file2)
+  
+ #Set grads region
+ ga("set lat %f %f" % (dims['minlat'],dims['maxlat']))
+ ga("set lon %f %f" % (dims['minlon'],dims['maxlon']))
+
+ #Regrid data
+ Grads_Regrid('mask.1','tmp1',dims)
+ Grads_Regrid('mask.2','tmp2',dims)
+ mask1 = ga.exp("tmp1")
+ mask2 = ga.exp("tmp2")
+
+ #Write to file
+ fp = Create_NETCDF_File(dims,file,['mask','mask200'],['mask','mask200'],datetime.datetime(1900,1,1),'days',1)
+ fp.variables['mask'][0] = np.ma.getdata(mask1)
+ fp.variables['mask200'][0] = np.ma.getdata(mask2)
+
+ #Close files 
+ ga("close 2")
+ ga("close 1")
+ fp.close()
+
+ return
+
 def Download_and_Process(date,dims,tstep,dataset,info):
 
  #If monthly time step only extract at end of month
@@ -149,23 +180,36 @@ def Download_and_Process(date,dims,tstep,dataset,info):
 
  #Extract basic info
  qh = ga.query("file")
- #vars = []
- #vars_info = []
- #vars_file = qh.vars
- #vars_info_file = qh.var_titles
- #for var in info:
- # vars.append(var)
- # vars_info.append(vars_info_file[vars_file.index(var)])
  vars = qh.vars
  vars_info = qh.var_titles
  nt = qh.nt
- ga("set t 1")
- idate = gradstime2datetime(ga.exp(vars[0]).grid.time[0])
+ #ga("set t 1")
+ #idate = gradstime2datetime(ga.exp(vars[0]).grid.time[0])
+ idate = info['itime']
 
  #If the date is before the first time step return
  if date < idate:
   ga("close 1")
   return
+
+ #Create/Update the control file
+ file = '../DATA_GRID/CTL/%s_%s.ctl' % (dataset,tstep)
+ fp = open(file,'w')
+ if tstep == "DAILY":
+  fp.write('dset ^../%s/%s/%s/%s_%s%s%s_daily.nc\n' % ('%y4','%m2','%d2',dataset,'%y4','%m2','%d2'))
+ if tstep == "MONTHLY":
+  fp.write('dset ^../%s/%s/%s_%s%s_monthly.nc\n' % ('%y4','%m2',dataset,'%y4','%m2'))
+ if tstep == "YEARLY":
+  fp.write('dset ^../%s/%s_%s_yearly.nc\n' % ('%y4',dataset,'%y4'))
+ fp.write('options template\n')
+ fp.write('dtype netcdf\n')
+ if tstep == "DAILY":
+  fp.write('tdef t %d linear %s %s\n' % (nt,datetime2gradstime(idate),'1dy'))
+ if tstep == "MONTHLY":
+  fp.write('tdef t %d linear %s %s\n' % (nt,datetime2gradstime(idate),'1mo'))
+ if tstep == "YEARLY":
+  fp.write('tdef t %d linear %s %s\n' % (nt,datetime2gradstime(idate),'1yr'))
+ fp.close()
  
  #Set grads region
  ga("set lat %f %f" % (dims['minlat'],dims['maxlat']))
@@ -175,11 +219,11 @@ def Download_and_Process(date,dims,tstep,dataset,info):
  time = datetime2gradstime(date)
  ga("set time %s" % time)
  if tstep == "DAILY":
-  file = '../DATA/DAILY/%04d%02d%02d/%s_%04d%02d%02d_daily.nc' % (date.year,date.month,date.day,dataset,date.year,date.month,date.day)
+  file = '../DATA_GRID/%04d/%02d/%02d/%s_%04d%02d%02d_daily.nc' % (date.year,date.month,date.day,dataset,date.year,date.month,date.day)
  if tstep == "MONTHLY":
-  file = '../DATA/MONTHLY/%04d%02d/%s_%04d%02d_monthly.nc' % (date.year,date.month,dataset,date.year,date.month)
+  file = '../DATA_GRID/%04d/%02d/%s_%04d%02d_monthly.nc' % (date.year,date.month,dataset,date.year,date.month)
  if tstep == "YEARLY":
-  file = '../DATA/YEARLY/%04d/%s_%04d_yearly.nc' % (date.year,dataset,date.year)
+  file = '../DATA_GRID/%04d/%s_%04d_yearly.nc' % (date.year,dataset,date.year)
  if os.path.exists(file) == True:
   ga("close 1")
   return
@@ -193,41 +237,30 @@ def Download_and_Process(date,dims,tstep,dataset,info):
  ga("close 1")
  fp.close()
 
- #Create/Update the control file
- file = '../DATA/%s/%s_%s.ctl' % (tstep,dataset,tstep)
- fp = open(file,'w')
- if tstep == "DAILY":
-  fp.write('dset ^%s%s%s/%s_%s%s%s_daily.nc\n' % ('%y4','%m2','%d2',dataset,'%y4','%m2','%d2'))
- if tstep == "MONTHLY":
-  fp.write('dset ^%s%s/%s_%s%s_monthly.nc\n' % ('%y4','%m2',dataset,'%y4','%m2'))
- if tstep == "YEARLY":
-  fp.write('dset ^%s/%s_%s_yearly.nc\n' % ('%y4',dataset,'%y4'))
- fp.write('options template\n')
- fp.write('dtype netcdf\n')
- if tstep == "DAILY":
-  fp.write('tdef t %d linear %s %s\n' % (nt,datetime2gradstime(idate),'1dy'))
- if tstep == "MONTHLY":
-  fp.write('tdef t %d linear %s %s\n' % (nt,datetime2gradstime(idate),'1mo'))
- if tstep == "YEARLY":
-  fp.write('tdef t %d linear %s %s\n' % (nt,datetime2gradstime(idate),'1yr'))
- fp.close()
-
  return
 
 def datetime2outputtime(date,timestep):
  
  #Convert datetime to output time
  if timestep == "DAILY":
-  str = date.strftime('%Y%m%d')
+  date_output = date.strftime('%Y%m%d')
+  dir_output = date.strftime('%Y/%m/%d')
  elif timestep == "MONTHLY":
-  str = date.strftime('%Y%m')
+  date_output = date.strftime('%Y%m')
+  dir_output = date.strftime('%Y/%m')
  elif timestep == "YEARLY":
-  str = date.strftime('%Y')
+  date_output= date.strftime('%Y')
+  dir_output = date.strftime('%Y')
 
- return str
+ return (dir_output,date_output)
 
-def Create_Images(date,dims,dataset,timestep):
-
+def Create_Images(date,dims,dataset,timestep,info):
+ 
+ variables = info['variables']
+ idate = info['itime']
+ fdate = info['ftime']
+ if date < idate or date > fdate:
+  return
 
  #If monthly time step only extract at end of month
  if timestep == "MONTHLY" and (date + datetime.timedelta(days=1)).month == date.month:
@@ -244,34 +277,140 @@ def Create_Images(date,dims,dataset,timestep):
  ga("close 1")
 
  #Open control file
- ga("xdfopen ../DATA/%s/%s_%s.ctl" % (timestep,dataset,timestep))
+ ga("xdfopen ../DATA_GRID/CTL/%s_%s.ctl" % (dataset,timestep))
  #Define timestamp
- date_output = datetime2outputtime(date,timestep) 
+ (dir_output,date_output) = datetime2outputtime(date,timestep) 
  #Extract all variable information
- qh = ga.query("file")
+ #qh = ga.query("file")
  #Create images for all variables
- for var in qh.vars:
-  image_file = '../IMAGES/%s/%s/%s_%s_%s.png'  % (timestep,date_output,dataset,var,date_output)
+ for var in variables:#qh.vars:
+  print var
+  image_file = '../IMAGES/%s/%s_%s_%s.png'  % (dir_output,dataset,var,date_output)
   ga("set time %s" % datetime2gradstime(date))
-  data = ga.exp("maskout(%s,mask)" % var)
-  #data = ga.exp("%s" % var)
-  #data = np.ma.masked_where(mask == 0,data)
-  Create_Image(image_file,data)
+  ga("data = maskout(%s,mask)" % var)
+  if var in ["spi1","spi3","spi6","spi12","vcpct","vc1","vc2"]:
+   ga("data = smth9(data)")
+  data = ga.exp("data")
+  (cmap,levels,norm) = Define_Colormap(var,timestep)
+  cflag = True
+  if var in ['flw','flw_pct']:
+   cflag = False
+  Create_Image(image_file,data,cmap,levels,norm,cflag)
+  colormap_file = '../IMAGES/COLORBARS/%s_%s.png' % (dataset,var)
+  Create_Colorbar(colormap_file,cmap,norm,var,levels)
 
  #Close access to file
  ga("close 1")
 
  return
 
-def Create_Image(file,data):
+def Create_Colorbar(file,cmap,norm,var,levels):
+ 
+ #if os.path.exists(file):
+ # return
+ #fig = plt.figure(figsize=(8,0.5))
+ #ax = fig.add_axes([0.2,0.5,0.8,0.8]) 
+ if var in ["prec"]:
+  levels = levels[0:-1:2]#[0,2,3,5,10,15,20,30,50,100]
+ if var in ["tmax"]:
+  levels = [280,285,290,295,300,305,310,315]
+ if var in ["tmin"]:
+  levels = [265,270,275,280,285,290,295,300]
+ if var in ["wind"]:
+  levels = [0,0.5,1,1.5,2,2.5,3,3.5,4,4.5,5]
+ if var in ["vc1","vc2"]:
+  levels = [0,10,20,30,40,50,60,70,80,90,100]
+ if var in ["r_net","net_short","net_long"]:
+  levels = [-200,-100,0,100,200]
+ if var in ["ndvi30"]:
+  levels = [0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0]
+ fig = plt.figure(figsize=(8,0.5))
+ ax = fig.add_axes([0.05, 0.4, 0.9, 0.8])
+ cb = mpl.colorbar.ColorbarBase(ax,cmap=cmap,norm=norm,orientation='horizontal',ticks=levels)
+ plt.savefig(file,transparent=True)
+ plt.close()
+
+ return
+
+def Define_Colormap(var,timestep):
+
+ #SPI
+ if var in ["spi1","spi3","spi6","spi12"]:
+  cpool = [ '#000000', '#813f41', '#ff0000', '#fd7e00', '#ffff00','#ffffff', '#b3ff00', '#00b400', '#017172', '#0000ff','#9600fe']
+  cmap = mpl.colors.ListedColormap(cpool, 'indexed')
+  levels = [-100.0,-2.00,-1.6,-1.3,-0.8,-0.5,0.5,0.8,1.3,1.6,2.00,100.0]
+  norm = mpl.colors.BoundaryNorm(levels,ncolors=len(levels),clip=False)
+
+ #Precipitation
+ if var == "prec":
+  if timestep == "DAILY":
+   levels = [0,1,2,3,4,5,7.5,10,12.5,15,17.5,20,25.0,30,35.0,40,50,70,100]
+  cmap = cm.s3pcpn
+  norm = mpl.colors.BoundaryNorm(levels,ncolors=len(levels), clip=False)
+   
+ #Temperature
+ if var in ["tmax","tmin"]:
+  if var == "tmax":
+   levels = np.linspace(280,315,40)
+  if var == "tmin":
+   levels = np.linspace(265,300,40)
+  cmap = plt.cm.RdBu_r
+  norm = mpl.colors.Normalize(vmin=np.min(levels),vmax=np.max(levels), clip=False)
+
+ #Wind
+ if var in ["wind"]:
+  levels = np.linspace(0,5,40)
+  cmap = plt.cm.RdBu_r
+  norm = mpl.colors.Normalize(vmin=np.min(levels),vmax=np.max(levels), clip=False)
+
+ #Soil Moisture Volumetric Water Content
+ if var in ["vc1","vc2"]:
+  levels = np.linspace(0,100,40)
+  cmap = plt.cm.jet_r
+  norm = mpl.colors.Normalize(vmin=np.min(levels),vmax=np.max(levels), clip=False)
+
+ if var in ["vcpct","pct30day","flw_pct"]:
+  levels = [1,5,10,20,30,70,80,90,95,99]
+  cmap = plt.cm.RdYlGn
+  norm = mpl.colors.BoundaryNorm(levels,ncolors=256, clip=False)
+
+ #Streamflow
+ if var in ["flw"]:
+  #levels = [0,5000,10000,15000,20000,25000,30000,35000,40000]
+  levels = [0,100,200,300,400,500,1000,1500,2000,2500,5000,10000,20000,30000]
+  cmap = plt.cm.jet_r
+  norm = mpl.colors.BoundaryNorm(levels,ncolors=256, clip=False)
+
+ #Baseflow and Surface Runoff
+ if var in ["evap","runoff","baseflow"]:
+  levels = [0,1,2,3,4,5,7.5,10,12.5,15,17.5,20,25.0,30,35.0,40,50,70,100]
+  cmap = cm.s3pcpn
+  norm = mpl.colors.BoundaryNorm(levels,ncolors=len(levels), clip=False)
+
+ #Surface Fluxes
+ if var in ["r_net","net_short","net_long"]:
+  levels = np.linspace(-200,200,40)
+  cmap = plt.cm.jet
+  norm = mpl.colors.Normalize(vmin=np.min(levels),vmax=np.max(levels), clip=False)
+
+ #NDVI
+ if var in ["ndvi30"]:
+  levels = np.linspace(0,1,40)
+  cmap = plt.cm.YlGn
+  norm = mpl.colors.Normalize(vmin=np.min(levels),vmax=np.max(levels), clip=False)
+
+ #VIC output
+ #if var in ["
+
+ return (cmap,levels,norm)
+
+def Create_Image(file,data,cmap,levels,norm,cflag):
 
  #Extract grid info
  undef = -9.99e+08
  lats = data.grid.lat
  lons = data.grid.lon
- #levels = [0,1,2.5,5,7.5,10,15,20,30,40,50,70,100,150,200,250,300,400,500,600,750]
- #levels = np.linspace(np.min(data[np.isnan(data) == 0]),np.max(data[np.isnan(data) == 0]),20)
- levels = np.linspace(np.min(data),np.max(data),30)
+
  #Create Basemap instance for Google maps mercator projection
  res = lats[1] - lats[0]
  llcrnrlat = lats[0]# - res/2
@@ -293,14 +432,11 @@ def Create_Image(file,data):
  plt.axis('off')
  #x,y = m(x,y)
  #x, y = m(*np.meshgrid(lons,lats))
- #cs = m.contourf(x,y,data,levels=levels,linewidhts=0,cmap=cm.s3pcpn,linestyles=None,linewidths=None)
- #cs = m.contourf(x,y,data,linewidhts=0,cmap=cm.s3pcpn,linestyles=None,linewidths=None)
- cs = m.pcolormesh(lons,lats,data,latlon=True,shading='flat')
- #cs = m.contourf(lons,lats,data,latlon=True,levels=levels)
- #cs = m.imshow(data,interpolation='nearest')
- #plt.imshow(np.flipud(data),interpolation='nearest')
- plt.savefig(file,transparent=True)#,pad_inches=0.0,bbox_inches='tight')#,transparent=True)
- #os.system("convert %s -trim %s" % (file,file))
+ cs = m.pcolormesh(lons,lats,data,latlon=True,shading='flat',cmap=cmap, norm=norm)
+ if cflag == True:
+  cs = m.contourf(lons,lats,data,latlon=True,levels=levels,cmap=cmap,norm=norm)
+ plt.savefig(file,transparent=True)
+ plt.close()
 
  return
 
