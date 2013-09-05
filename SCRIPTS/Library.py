@@ -15,6 +15,29 @@ import dateutil.relativedelta as relativedelta
 #from cython.parallel import prange
 grads_exe = '../LIBRARIES/grads-2.0.1.oga.1/Contents/grads'
 ga = grads.GrADS(Bin=grads_exe,Window=False,Echo=False)
+xml_settings = '../web_nchaney/settings.xml'
+
+def print_info_to_command_line(line):
+
+ print "#######################################################################################"
+ print "%s" % line
+ print "#######################################################################################"
+ print "\n"
+
+ return
+
+def Update_XML(group_name,var_name,dataset_name,itime):
+ tree = ET.parse(xml_settings)
+ root = tree.getroot()
+ for group in root.find('variables'):
+  if group.attrib['name'] == group_name:
+   for var in group:
+    if var.attrib['name'] == var_name:
+     for dataset in var:
+      if dataset.attrib['name'] == dataset_name:
+       dataset.attrib['ftime'] = 'here'
+       tree.write('test.xml')
+ return
 
 def Check_and_Make_Directory(dir):
 
@@ -135,42 +158,51 @@ def Create_Mask(dims):
  #Define http files
  http_file1 = 'http://freeze.princeton.edu:9090/dods/AFRICAN_WATER_CYCLE_MONITOR/MASK'
  http_file2 = 'http://freeze.princeton.edu:9090/dods/AFRICAN_WATER_CYCLE_MONITOR/MASK_200mm'
+ http_file3 = 'http://freeze.princeton.edu:9090/dods/AFRICAN_WATER_CYCLE_MONITOR/MASK_SO'
 
  #Open file
  ga("sdfopen %s" % http_file1)
  ga("sdfopen %s" % http_file2)
+ ga("sdfopen %s" % http_file3)
   
  #Set grads region
  ga("set lat %f %f" % (dims['minlat'],dims['maxlat']))
  ga("set lon %f %f" % (dims['minlon'],dims['maxlon']))
 
  #Regrid data
- Grads_Regrid('mask.1','tmp1',dims)
- Grads_Regrid('mask.2','tmp2',dims)
- mask1 = ga.exp("tmp1")
- mask2 = ga.exp("tmp2")
+ Grads_Regrid('mask.1','mask1',dims)
+ Grads_Regrid('mask.2','mask2',dims)
+ Grads_Regrid('mask.3','mask3',dims)
 
  #Write to file
- fp = Create_NETCDF_File(dims,file,['mask','mask200'],['mask','mask200'],datetime.datetime(1900,1,1),'days',1)
- fp.variables['mask'][0] = np.ma.getdata(mask1)
- fp.variables['mask200'][0] = np.ma.getdata(mask2)
+ fp = Create_NETCDF_File(dims,file,['mask','mask200','maskSO'],['mask','mask200','maskSO'],datetime.datetime(1900,1,1),'days',1)
+ fp.variables['mask'][0] = np.ma.getdata(ga.exp("mask1"))
+ fp.variables['mask200'][0] = np.ma.getdata(ga.exp("mask2"))
+ fp.variables['maskSO'][0] = np.ma.getdata(ga.exp("mask3"))
 
  #Close files 
+ ga("close 3")
  ga("close 2")
  ga("close 1")
  fp.close()
 
  return
 
-def Download_and_Process(date,dims,tstep,dataset,info):
+def Download_and_Process(date,dims,tstep,dataset,info,Reprocess_Flag):
+
+ idate = info['itime']
+ if date < idate:
+  return info
 
  #If monthly time step only extract at end of month
  if tstep == "MONTHLY" and (date + datetime.timedelta(days=1)).month == date.month:
-  return
+  return info
 
  #If yearly time step only extract at end of month
  if tstep == "YEARLY" and (date + datetime.timedelta(days=1)).year == date.year:
-  return
+  return info
+
+ print_info_to_command_line('Dataset: %s Timestep: %s (Downloading and Processing data)' % (dataset,tstep))
 
  #Define the grads server root
  http_file = "http://freeze.princeton.edu:9090/dods/AFRICAN_WATER_CYCLE_MONITOR/%s/%s" % (dataset,tstep)
@@ -185,12 +217,16 @@ def Download_and_Process(date,dims,tstep,dataset,info):
  nt = qh.nt
  #ga("set t 1")
  #idate = gradstime2datetime(ga.exp(vars[0]).grid.time[0])
- idate = info['itime']
 
  #If the date is before the first time step return
  if date < idate:
   ga("close 1")
-  return
+  return info
+
+ #Determine the last date
+ ga("set t last")
+ fdate = gradstime2datetime(ga.exp(vars[0]).grid.time[0])
+ info['ftime'] = fdate
 
  #Create/Update the control file
  file = '../DATA_GRID/CTL/%s_%s.ctl' % (dataset,tstep)
@@ -218,15 +254,20 @@ def Download_and_Process(date,dims,tstep,dataset,info):
  #Regrid and write variables to file
  time = datetime2gradstime(date)
  ga("set time %s" % time)
+ 
+ #Define new filename
  if tstep == "DAILY":
   file = '../DATA_GRID/%04d/%02d/%02d/%s_%04d%02d%02d_daily.nc' % (date.year,date.month,date.day,dataset,date.year,date.month,date.day)
  if tstep == "MONTHLY":
   file = '../DATA_GRID/%04d/%02d/%s_%04d%02d_monthly.nc' % (date.year,date.month,dataset,date.year,date.month)
  if tstep == "YEARLY":
   file = '../DATA_GRID/%04d/%s_%04d_yearly.nc' % (date.year,dataset,date.year)
- if os.path.exists(file) == True:
+
+  #If file exists, exit
+ if os.path.exists(file) == True and Reprocess_Flag == False:
   ga("close 1")
-  return
+  return info
+
  fp = Create_NETCDF_File(dims,file,vars,vars_info,date,'days',1)
  data = []
  for var in vars:
@@ -237,7 +278,9 @@ def Download_and_Process(date,dims,tstep,dataset,info):
  ga("close 1")
  fp.close()
 
- return
+ #Update the time parameters
+
+ return info
 
 def datetime2outputtime(date,timestep):
  
@@ -254,7 +297,7 @@ def datetime2outputtime(date,timestep):
 
  return (dir_output,date_output)
 
-def Create_Images(date,dims,dataset,timestep,info):
+def Create_Images(date,dims,dataset,timestep,info,Reprocess_Flag):
  
  variables = info['variables']
  idate = info['itime']
@@ -263,32 +306,36 @@ def Create_Images(date,dims,dataset,timestep,info):
   return
 
  #If monthly time step only extract at end of month
- if timestep == "MONTHLY" and (date + datetime.timedelta(days=1)).month == date.month:
-  return
+ if timestep == "MONTHLY":
+  if (date + datetime.timedelta(days=1)).month == date.month:
+   return
+  date = datetime.datetime(date.year,date.month,1)
 
  #If yearly time step only extract at end of month
- if timestep == "YEARLY" and (date + datetime.timedelta(days=1)).year == date.year:
-  return
- 
- #Load mask
- ga("xdfopen ../DATA/DAILY/VIC_PGF_DAILY.ctl")
- ga("mask = const(const(sm1,1),-1,-u)")
- mask = np.ma.getdata(ga.exp("mask"))
- ga("close 1")
+ if timestep == "YEARLY": 
+  if (date + datetime.timedelta(days=1)).year == date.year:
+   return
+  date = datetime.datetime(date.year,1,1)
 
+ print_info_to_command_line('Dataset: %s Timestep: %s (Creating Images)' % (dataset,timestep))
+ 
  #Open control file
  ga("xdfopen ../DATA_GRID/CTL/%s_%s.ctl" % (dataset,timestep))
+ #Load mask file
+ ga("sdfopen ../DATA_GRID/MASKS/mask.nc")
  #Define timestamp
  (dir_output,date_output) = datetime2outputtime(date,timestep) 
  #Extract all variable information
  #qh = ga.query("file")
  #Create images for all variables
  for var in variables:#qh.vars:
-  print var
   image_file = '../IMAGES/%s/%s_%s_%s.png'  % (dir_output,dataset,var,date_output)
+  #Skip image if it exists and we don't want to reprocess it
+  if os.path.exists(image_file) and Reprocess_Flag == False:
+   continue
   ga("set time %s" % datetime2gradstime(date))
-  ga("data = maskout(%s,mask)" % var)
-  if var in ["spi1","spi3","spi6","spi12","vcpct","vc1","vc2"]:
+  ga("data = maskout(%s,%s.2(t=1))" % (var,variables[var]['mask']))
+  if var in ["spi1","spi3","spi6","spi12","vcpct","vc1","vc2","pct30day"]:
    ga("data = smth9(data)")
   data = ga.exp("data")
   (cmap,levels,norm) = Define_Colormap(var,timestep)
@@ -296,10 +343,11 @@ def Create_Images(date,dims,dataset,timestep,info):
   if var in ['flw','flw_pct']:
    cflag = False
   Create_Image(image_file,data,cmap,levels,norm,cflag)
-  colormap_file = '../IMAGES/COLORBARS/%s_%s.png' % (dataset,var)
+  colormap_file = '../IMAGES/COLORBARS/%s_%s_%s.png' % (dataset,var,timestep)
   Create_Colorbar(colormap_file,cmap,norm,var,levels)
 
  #Close access to file
+ ga("close 2")
  ga("close 1")
 
  return
@@ -343,8 +391,11 @@ def Define_Colormap(var,timestep):
 
  #Precipitation
  if var == "prec":
-  if timestep == "DAILY":
-   levels = [0,1,2,3,4,5,7.5,10,12.5,15,17.5,20,25.0,30,35.0,40,50,70,100]
+  levels = np.array([0,1,2,3,4,5,7.5,10,12.5,15,17.5,20,25.0,30,35.0,40,50,70,100])
+  if timestep == "MONTHLY":
+   levels = 25*levels
+  if timestep == "YEARLY":
+   levels = 80*levels
   cmap = cm.s3pcpn
   norm = mpl.colors.BoundaryNorm(levels,ncolors=len(levels), clip=False)
    
