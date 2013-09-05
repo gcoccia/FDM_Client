@@ -71,9 +71,10 @@ date = datetime.datetime.today()
 idate = datetime.datetime(date.year,date.month,date.day) - 32*dt
 fdate = idate + datetime.timedelta(days=30)
 idate = datetime.datetime(1950,1,1)
-fdate = datetime.datetime(2008,12,31)
+fdate = datetime.datetime(1950,12,31)
 
 #2. Download all the requested data
+'''
 date = idate
 while date <= fdate:
 
@@ -94,6 +95,7 @@ while date <= fdate:
    cl.Create_Images(date,dims,dataset,tstep,datasets[dataset],True)
 
  date = date + dt
+'''
 
 #3. Create and update the point data
 

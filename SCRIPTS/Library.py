@@ -6,6 +6,7 @@ import datetime
 import grads
 import numpy as np
 from mpl_toolkits.basemap import Basemap,cm
+import time
 #import fileinput
 import netCDF4 as netcdf
 #import pyhdf.SD as sd
@@ -252,8 +253,8 @@ def Download_and_Process(date,dims,tstep,dataset,info,Reprocess_Flag):
  ga("set lon %f %f" % (dims['minlon'],dims['maxlon']))
 
  #Regrid and write variables to file
- time = datetime2gradstime(date)
- ga("set time %s" % time)
+ timestamp = datetime2gradstime(date)
+ ga("set time %s" % timestamp)
  
  #Define new filename
  if tstep == "DAILY":
@@ -502,18 +503,22 @@ def Create_and_Update_Point_Data(idate,fdate,tstep,dataset,info):
  if tstep == "YEARLY" and ((fdate+datetime.timedelta(days=1)).year == idate.year):
   return
 
- #Create mask
- ga("xdfopen ../DATA/DAILY/VIC_PGF_DAILY.ctl")
- ga("mask = const(const(sm1,1),0,-u)")
+ print_info_to_command_line('Dataset: %s Timestep: %s (Outputing Point Data)' % (dataset,tstep))
+
+ #Load mask
+ ga("sdfopen ../DATA_GRID/MASKS/mask.nc")
+ #ga("xdfopen ../DATA/DAILY/VIC_PGF_DAILY.ctl")
+ #ga("mask = const(const(sm1,1),0,-u)")
  mask = ga.exp("mask")
  ga("close 1")
- lats = mask.grid.lat[0:2]
+ lats = mask.grid.lat#[0:2]
  lons = mask.grid.lon#[0:100]
  mask = np.ma.getdata(mask)
 
  #Open dataset control file and read information
  try:
-  ga("xdfopen ../DATA/%s/%s_%s.ctl" % (tstep,dataset,tstep))
+  ga("xdfopen ../DATA_GRID/CTL/%s_%s.ctl" % (dataset,tstep))
+  #ga("xdfopen ../DATA/%s/%s_%s.ctl" % (tstep,dataset,tstep))
  except:
   return
  group = dataset
@@ -545,11 +550,12 @@ def Create_and_Update_Point_Data(idate,fdate,tstep,dataset,info):
  if idate < idate_dataset:
   ga("close 1")
   return
-
+ 
  #Iterate through grid cells
  ga("set time %s %s" % (datetime2gradstime(idate),datetime2gradstime(fdate)))
  data = []
  for var in variables:
+  print "Extracting %s data" % var
   data.append(ga.exp(var))
 
  #Create date string
@@ -569,7 +575,7 @@ def Create_and_Update_Point_Data(idate,fdate,tstep,dataset,info):
  for ilat in range(lats.size):
   print lats[ilat]
   for ilon in range(lons.size):
-   if mask[ilat,ilon] != 0:
+   if mask[ilat,ilon] == 1:
     #Assign region
     #ga("set lat %f" % lats[ilat])
     #ga("set lon %f" % lons[ilon])
@@ -601,9 +607,9 @@ def Create_and_Update_Point_Data(idate,fdate,tstep,dataset,info):
 
     #Determine if time variable exists
     try: 
-     time = grp.variables['time']
+     timeg = grp.variables['time']
     except:
-     time = grp.createVariable('time','i4',('time',))
+     timeg = grp.createVariable('time','i4',('time',))
 
     ivar = 0
     for variable in variables:
@@ -620,7 +626,7 @@ def Create_and_Update_Point_Data(idate,fdate,tstep,dataset,info):
       var[t_initial:t_final+1] = data[ivar][ilat,ilon]
      else:
       var[t_initial:t_final+1] = data[ivar][:,ilat,ilon]
-     time[t_initial:t_final+1] = time_str
+     timeg[t_initial:t_final+1] = time_str
      ivar = ivar + 1
      
     #Close the file
