@@ -189,7 +189,76 @@ def Create_Mask(dims):
 
  return
 
+def Download_and_Process_Seasonal_Forecast(date,dims):
+
+ print_info_to_command_line('Downloading and Processing the 6-month Seasonal Forecast') 
+ #Iterate through the seasonal forecasts
+ models = ['CMC1-CanCM3','CMC2-CanCM4','COLA-RSMAS-CCSM3','GFDL-CM2p1-aer04','MultiModel','NASA-GMAO-062012']
+ idate = datetime.datetime(2013,1,1)
+ #Determine the ensemble number
+ iensemble = 12*(date.year - idate.year) + max(date.month - idate.month,0) + 1
+ print iensemble
+ for model in models:
+  print model
+  file = '../DATA_GRID/%04d/%02d/%s_monthly.nc' % (date.year,date.month,model)
+  #Open grads access
+  http_file = "http://freeze.princeton.edu:9090/dods/AFRICAN_WATER_CYCLE_MONITOR/SEASONAL_FORECAST/%s" % model
+  ga("sdfopen %s" % http_file)
+  #Set the ensemble number
+  ga("set e %d" % iensemble)
+  #Extract variables
+  qh = ga.query("file")
+  vars = qh.vars
+  vars_info = qh.var_titles
+  #Create file
+  fp = Create_NETCDF_File(dims,file,vars,vars_info,datetime.datetime(date.year,date.month,1),'months',6)
+  #Add data
+  date = date.replace(day=1)
+  for i in xrange(0,6):
+   ga("set time %s" % datetime2gradstime(date + i*relativedelta.relativedelta(months=1)))
+   for var in vars:
+    Grads_Regrid(var,'data',dims)
+    fp.variables[var][i] = np.ma.getdata(ga.exp('data'))
+  #Close files 
+  ga("close 1")
+  fp.close()
+  #Create the updated control file
+  fdate = date
+  nmonths = 12*(fdate.year - idate.year) + max(fdate.month-idate.month,0) + 1
+  ctl = '../DATA_GRID/CTL/%s_MONTHLY.ctl' % model
+  fp = open(ctl,'w')
+  fp.write('dset ^../%s/%s_monthly.nc\n' % ('%e',model))
+  fp.write('options template\n')
+  fp.write('dtype netcdf\n')
+  fp.write('title Seasonal Forecast %s\n' % model)
+  fp.write('undef -9.99e+08\n')
+  fp.write('xdef %d  linear %f %f\n' % (dims['nlon'],dims['minlon'],dims['res']))
+  fp.write('ydef %d  linear %f %f\n' % (dims['nlat'],dims['minlat'],dims['res']))
+  fp.write('tdef %d linear 00Z01%s%d 1mo\n' % (nmonths+6,idate.strftime('%b'),idate.year))
+  fp.write('zdef 1 linear 1 1\n')
+  fp.write('edef %d\n' % nmonths)
+  date_tmp = idate
+  while date_tmp <= fdate:
+   fp.write('%04d/%02d 6 00Z01%s%d 1mo\n' % (date_tmp.year,date_tmp.month,date_tmp.strftime('%b'),date_tmp.year))
+   date_tmp = date_tmp + relativedelta.relativedelta(months=1)
+  fp.write('endedef\n')
+  fp.write('vars 7\n')
+  fp.write('spi1 1 t,y,x data\n')
+  fp.write('spi3 1 t,y,x data\n')
+  fp.write('spi6 1 t,y,x data\n')
+  fp.write('spi12 1 t,y,x data\n')
+  fp.write('prec 1 t,y,x data\n')
+  fp.write('t2ano 1 t,y,x data\n')
+  fp.write('t2m 1 t,y,x data\n')
+  fp.write('endvars\n')
+  fp.close()
+ return
+
 def Download_and_Process(date,dims,tstep,dataset,info,Reprocess_Flag):
+
+ if dataset == "SEASONAL_FORECAST":
+  Download_and_Process_Seasonal_Forecast(date,dims)
+  return
 
  idate = info['itime']
  if date < idate:
@@ -492,9 +561,160 @@ def Create_Image(file,data,cmap,levels,norm,cflag):
 
  return
 
+def Extract_Gridded_Data(dataset,tstep,idate,fdate,info):
+
+ #Open dataset control file and read information
+ ga("xdfopen ../DATA_GRID/CTL/%s_%s.ctl" % (dataset,tstep))
+ group = dataset
+ vars_file = ga.query("file").vars
+ vars_info_file = ga.query("file").var_titles
+ variables = []
+ for var in info['variables']:
+  variables.append(var)
+ ga("set t 1")
+ idate_dataset = gradstime2datetime(ga.exp(variables[0]).grid.time[0])
+
+ #Define current time step
+ if tstep == "DAILY":
+  t_initial = (idate - idate_dataset).days
+  t_final = (fdate - idate_dataset).days
+ if tstep == "MONTHLY":
+  t_initial = idate.month - idate_dataset.month + (idate.year - idate_dataset.year) * 12
+  t_final = fdate.month - idate_dataset.month + (fdate.year - idate_dataset.year) * 12
+  idate = datetime.datetime(idate.year,idate.month,1)
+  fdate = datetime.datetime(fdate.year,fdate.month,1)
+ if tstep == "YEARLY":
+  t_initial = idate.year - idate_dataset.year
+  t_final = fdate.year - idate_dataset.year
+  idate = datetime.datetime(idate.year,1,1)
+  fdate = datetime.datetime(fdate.year,1,1)
+
+ #Leave if before initial time step
+ if idate < idate_dataset:
+  ga("close 1")
+  return
+
+ #Extract the gridded data
+ ga("set time %s %s" % (datetime2gradstime(idate),datetime2gradstime(fdate)))
+ data = []
+ for var in variables:
+  print "Extracting %s data" % var
+  data.append(ga.exp(var))
+
+ #Create date string
+ if tstep == "DAILY":
+  dt = datetime.timedelta(days=1)
+ if tstep == "MONTHLY":
+  dt = relativedelta.relativedelta(months=1)
+ if tstep == "YEARLY":
+  dt = relativedelta.relativedelta(years=1)
+ time_str = []
+ date = idate
+ while date <= fdate:
+  time_str.append(int(date.strftime("%s")))
+  date = date + dt
+
+ #Prepare dictionary
+ OUTPUT = {}
+ OUTPUT['data'] = data
+ OUTPUT['time'] = time_str
+ OUTPUT['variables'] = variables
+ OUTPUT['t_initial'] = t_initial
+ OUTPUT['t_final'] = t_final
+
+ #Close grads data
+ ga("close 1")
+
+ return OUTPUT
+
+def Create_and_Update_All_Point_Data(idate,fdate,info,tstep):
+
+ #Load mask
+ ga("sdfopen ../DATA_GRID/MASKS/mask.nc")
+ mask = ga.exp("mask")
+ ga("close 1")
+ lats = mask.grid.lat
+ lons = mask.grid.lon
+ mask = np.ma.getdata(mask)
+
+ #Iterate through all datasets extracting the necessary info
+ GRID_DATA = {}
+ for dataset in info:
+  print dataset
+  TEMP = Extract_Gridded_Data(dataset,tstep,idate,fdate,info[dataset])
+  GRID_DATA[dataset] = TEMP
+
+ for ilat in range(lats.size):
+  print lats[ilat]
+  for ilon in range(lons.size):
+   if mask[ilat,ilon] == 1:
+
+    #Determine if file exists 
+    file = '../DATA/CELL/cell_%0.3f_%0.3f.nc' % (lats[ilat],lons[ilon])
+    if os.path.exists(file) == False:
+     fp = netcdf.Dataset(file,'w',format='NETCDF4')
+    else:
+     fp = netcdf.Dataset(file,'a',format='NETCDF4')
+
+    #Determine if time step group exists
+    try:
+     grp_tstep = fp.groups[tstep]
+    except:
+     grp_tstep = fp.createGroup(tstep)
+
+    for group in info:
+
+     #Define time intervals
+     try:
+      t_initial = GRID_DATA[group]['t_initial']
+      t_final = GRID_DATA[group]['t_final']
+     except:
+      continue
+
+     #Determine if the dataset group exists
+     try:
+      grp = grp_tstep.groups[group]
+     except:
+      grp = grp_tstep.createGroup(group)
+
+     #Determine if dimensions exist
+     try:
+      dim = grp.dimensions['time']
+     except:
+      dim = grp.createDimension('time',None)
+
+     #Determine if time variable exists
+     try:
+      timeg = grp.variables['time']
+     except:
+      timeg = grp.createVariable('time','i4',('time',))
+
+     ivar = 0
+     for variable in info[group]['variables']:
+      #Determine if variables exist
+      try:
+       var = grp.variables[variable]
+      except:
+       var = grp.createVariable(variable,'f4',('time',))
+
+      #Assign data
+      if t_final - t_initial == 0:
+       var[t_initial:t_final+1] = GRID_DATA[group]['data'][ivar][ilat,ilon]
+      else:
+       var[t_initial:t_final+1] = GRID_DATA[group]['data'][ivar][:,ilat,ilon]
+      timeg[t_initial:t_final+1] = GRID_DATA[group]['time']#time_str
+      ivar = ivar + 1
+
+    #Close the file
+    fp.close()
+
+ #Close the grads file
+ ga("close 1")
+
+ return
+
 def Create_and_Update_Point_Data(idate,fdate,tstep,dataset,info):
 
- #Only works for daily for now
  #If monthly time step only extract at end of month
  print tstep
  if tstep == "MONTHLY" and ((fdate+datetime.timedelta(days=1)).month == idate.month) and ((fdate+datetime.timedelta(days=1)).year == idate.year):
@@ -503,24 +723,18 @@ def Create_and_Update_Point_Data(idate,fdate,tstep,dataset,info):
  if tstep == "YEARLY" and ((fdate+datetime.timedelta(days=1)).year == idate.year):
   return
 
- print_info_to_command_line('Dataset: %s Timestep: %s (Outputing Point Data)' % (dataset,tstep))
+ print_info_to_command_line('Timestep: %s (Outputing Point Data)' % (dataset,tstep))
 
  #Load mask
  ga("sdfopen ../DATA_GRID/MASKS/mask.nc")
- #ga("xdfopen ../DATA/DAILY/VIC_PGF_DAILY.ctl")
- #ga("mask = const(const(sm1,1),0,-u)")
  mask = ga.exp("mask")
  ga("close 1")
- lats = mask.grid.lat#[0:2]
- lons = mask.grid.lon#[0:100]
+ lats = mask.grid.lat
+ lons = mask.grid.lon
  mask = np.ma.getdata(mask)
 
  #Open dataset control file and read information
- try:
-  ga("xdfopen ../DATA_GRID/CTL/%s_%s.ctl" % (dataset,tstep))
-  #ga("xdfopen ../DATA/%s/%s_%s.ctl" % (tstep,dataset,tstep))
- except:
-  return
+ ga("xdfopen ../DATA_GRID/CTL/%s_%s.ctl" % (dataset,tstep))
  group = dataset
  vars_file = ga.query("file").vars
  vars_info_file = ga.query("file").var_titles
@@ -551,7 +765,7 @@ def Create_and_Update_Point_Data(idate,fdate,tstep,dataset,info):
   ga("close 1")
   return
  
- #Iterate through grid cells
+ #Extract the gridded data
  ga("set time %s %s" % (datetime2gradstime(idate),datetime2gradstime(fdate)))
  data = []
  for var in variables:

@@ -70,11 +70,10 @@ date = datetime.datetime.today()
 #Always redownload and reprocess the last 30 days
 idate = datetime.datetime(date.year,date.month,date.day) - 32*dt
 fdate = idate + datetime.timedelta(days=30)
-idate = datetime.datetime(1950,1,1)
-fdate = datetime.datetime(1950,12,31)
+idate = datetime.datetime(2013,7,31)
+fdate = datetime.datetime(2013,7,31)
 
 #2. Download all the requested data
-'''
 date = idate
 while date <= fdate:
 
@@ -96,13 +95,13 @@ while date <= fdate:
 
  date = date + dt
 '''
-
 #3. Create and update the point data
-
-for dataset in datasets:
- for tstep in datasets[dataset]['timestep']:
-  print "%s %s" % (dataset,tstep)
-  cl.Create_and_Update_Point_Data(idate,fdate,tstep,dataset,datasets[dataset]['variables'])
+#for dataset in datasets:
+for tstep in ['DAILY','MONTHLY','YEARLY']:
+  print "%s" % (tstep)
+  cl.Create_and_Update_All_Point_Data(idate,fdate,datasets,tstep)
+  #cl.Create_and_Update_Point_Data(idate,fdate,tstep,dataset,datasets[dataset]['variables'])
 
 #4. Update the xml file
-cl.Update_XML_File(datasets)
+#cl.Update_XML_File(datasets)
+'''
