@@ -189,7 +189,7 @@ def Create_Mask(dims):
 
  return
 
-def Download_and_Process_Seasonal_Forecast(date,dims):
+def Download_and_Process_and_Create_Images_Seasonal_Forecast(date,dims,Reprocess_Flag):
 
  print_info_to_command_line('Downloading and Processing the 6-month Seasonal Forecast') 
  #Iterate through the seasonal forecasts
@@ -197,31 +197,33 @@ def Download_and_Process_Seasonal_Forecast(date,dims):
  idate = datetime.datetime(2013,1,1)
  #Determine the ensemble number
  iensemble = 12*(date.year - idate.year) + max(date.month - idate.month,0) + 1
- print iensemble
+ #Download data
  for model in models:
   print model
   file = '../DATA_GRID/%04d/%02d/%s_monthly.nc' % (date.year,date.month,model)
-  #Open grads access
-  http_file = "http://freeze.princeton.edu:9090/dods/AFRICAN_WATER_CYCLE_MONITOR/SEASONAL_FORECAST/%s" % model
-  ga("sdfopen %s" % http_file)
-  #Set the ensemble number
-  ga("set e %d" % iensemble)
-  #Extract variables
-  qh = ga.query("file")
-  vars = qh.vars
-  vars_info = qh.var_titles
-  #Create file
-  fp = Create_NETCDF_File(dims,file,vars,vars_info,datetime.datetime(date.year,date.month,1),'months',6)
-  #Add data
-  date = date.replace(day=1)
-  for i in xrange(0,6):
-   ga("set time %s" % datetime2gradstime(date + i*relativedelta.relativedelta(months=1)))
-   for var in vars:
-    Grads_Regrid(var,'data',dims)
-    fp.variables[var][i] = np.ma.getdata(ga.exp('data'))
-  #Close files 
-  ga("close 1")
-  fp.close()
+  if os.path.exists(file) and Reprocess_Flag == False:
+   #Open grads access
+   http_file = "http://freeze.princeton.edu:9090/dods/AFRICAN_WATER_CYCLE_MONITOR/SEASONAL_FORECAST/%s" % model
+   ga("sdfopen %s" % http_file)
+   #Set the ensemble number
+   ga("set e %d" % iensemble)
+   #Extract variables
+   qh = ga.query("file")
+   vars = qh.vars
+   vars_info = qh.var_titles
+   #Create file
+   fp = Create_NETCDF_File(dims,file,vars,vars_info,datetime.datetime(date.year,date.month,1),'months',6)
+   #Add data
+   date = date.replace(day=1)
+   for i in xrange(0,6):
+    ga("set time %s" % datetime2gradstime(date + i*relativedelta.relativedelta(months=1)))
+    for var in vars:
+     Grads_Regrid(var,'data',dims)
+     fp.variables[var][i] = np.ma.getdata(ga.exp('data'))
+   #Close files 
+   ga("close 1")
+   fp.close()
+
   #Create the updated control file
   fdate = date
   nmonths = 12*(fdate.year - idate.year) + max(fdate.month-idate.month,0) + 1
@@ -252,12 +254,56 @@ def Download_and_Process_Seasonal_Forecast(date,dims):
   fp.write('t2m 1 t,y,x data\n')
   fp.write('endvars\n')
   fp.close()
+
+  #Open access to create images
+  print_info_to_command_line('Creating Images for the Seasonal Forecast')
+
+  #Open control file
+  ga("open %s" % ctl)
+  #Load mask file
+  ga("sdfopen ../DATA_GRID/MASKS/mask.nc")
+  #Extract all variable information
+  qh = ga.query("file")
+  variables = qh.vars
+  #Create images for all variables
+  date = date.replace(day=1)
+  #Set the ensemble number
+  print iensemble
+  #Create model directory
+  dir = '../IMAGES/%04d/%02d/%s'  % (date.year,date.month,model)
+  if os.path.exists(dir) == False:
+   os.mkdir(dir)
+  ga("set e %d" % (iensemble))
+  for t in xrange(0,6):
+   #Set time step
+   date_tmp = date + t*relativedelta.relativedelta(months=1)
+   print datetime2gradstime(date_tmp)
+   ga("set time %s" % datetime2gradstime(date_tmp))  
+   print date
+   for var in variables:#qh.vars:
+    image_file = '../IMAGES/%04d/%02d/%s/%s_%s_%04d%02d.png'  % (date.year,date.month,model,model,var,date_tmp.year,date_tmp.month)
+    #Skip image if it exists and we don't want to reprocess it
+    if os.path.exists(image_file) and Reprocess_Flag == False:
+     continue
+    #Add data
+    ga("data = %s" % var)
+    data = ga.exp("data")
+    (cmap,levels,norm) = Define_Colormap(var,'DAILY')
+    cflag = True
+    Create_Image(image_file,data,cmap,levels,norm,cflag)
+    colormap_file = '../IMAGES/COLORBARS/%s_%s_%s.png' % (model,var,'DAILY')
+    Create_Colorbar(colormap_file,cmap,norm,var,levels)
+
+  #Close access to file
+  ga("close 2")
+  ga("close 1")
+
  return
 
 def Download_and_Process(date,dims,tstep,dataset,info,Reprocess_Flag):
 
  if dataset == "SEASONAL_FORECAST":
-  Download_and_Process_Seasonal_Forecast(date,dims)
+  Download_and_Process_and_Create_Images_Seasonal_Forecast(date,dims,Reprocess_Flag)
   return
 
  idate = info['itime']
@@ -442,6 +488,10 @@ def Create_Colorbar(file,cmap,norm,var,levels):
   levels = [-200,-100,0,100,200]
  if var in ["ndvi30"]:
   levels = [0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0]
+ if var in ['t2ano']:
+  levels = [-4,-3,-2,-1,0,1,2,3,4]
+ if var in ['t2m']:
+  levels = [0,5,10,15,20,25,30,35,40]
  fig = plt.figure(figsize=(8,0.5))
  ax = fig.add_axes([0.05, 0.4, 0.9, 0.8])
  cb = mpl.colorbar.ColorbarBase(ax,cmap=cmap,norm=norm,orientation='horizontal',ticks=levels)
@@ -470,11 +520,15 @@ def Define_Colormap(var,timestep):
   norm = mpl.colors.BoundaryNorm(levels,ncolors=len(levels), clip=False)
    
  #Temperature
- if var in ["tmax","tmin"]:
+ if var in ["tmax","tmin","t2ano","t2m"]:
   if var == "tmax":
    levels = np.linspace(280,315,40)
   if var == "tmin":
    levels = np.linspace(265,300,40)
+  if var == "t2ano":
+   levels = np.linspace(-4,4,40)
+  if var == "t2m":
+   levels = np.linspace(0,40,40)
   cmap = plt.cm.RdBu_r
   norm = mpl.colors.Normalize(vmin=np.min(levels),vmax=np.max(levels), clip=False)
 
