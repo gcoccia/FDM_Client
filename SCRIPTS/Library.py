@@ -201,7 +201,7 @@ def Download_and_Process_and_Create_Images_Seasonal_Forecast(date,dims,Reprocess
  for model in models:
   print model
   file = '../DATA_GRID/%04d/%02d/%s_monthly.nc' % (date.year,date.month,model)
-  if os.path.exists(file) and Reprocess_Flag == False:
+  if os.path.exists(file) == False or Reprocess_Flag == True:
    #Open grads access
    http_file = "http://freeze.princeton.edu:9090/dods/AFRICAN_WATER_CYCLE_MONITOR/SEASONAL_FORECAST/%s" % model
    ga("sdfopen %s" % http_file)
@@ -281,7 +281,7 @@ def Download_and_Process_and_Create_Images_Seasonal_Forecast(date,dims,Reprocess
    ga("set time %s" % datetime2gradstime(date_tmp))  
    print date
    for var in variables:#qh.vars:
-    image_file = '../IMAGES/%04d/%02d/%s/%s_%s_%04d%02d.png'  % (date.year,date.month,model,model,var,date_tmp.year,date_tmp.month)
+    image_file = '../IMAGES/%04d/%02d/%s_%s_%04d%02d.png'  % (date.year,date.month,model,var,date_tmp.year,date_tmp.month)
     #Skip image if it exists and we don't want to reprocess it
     if os.path.exists(image_file) and Reprocess_Flag == False:
      continue
@@ -302,7 +302,7 @@ def Download_and_Process_and_Create_Images_Seasonal_Forecast(date,dims,Reprocess
 
 def Download_and_Process(date,dims,tstep,dataset,info,Reprocess_Flag):
 
- if dataset == "SEASONAL_FORECAST":
+ if dataset in ['CMC1-CanCM3','CMC2-CanCM4','COLA-RSMAS-CCSM3','GFDL-CM2p1-aer04','MultiModel','NASA-GMAO-062012']:
   Download_and_Process_and_Create_Images_Seasonal_Forecast(date,dims,Reprocess_Flag)
   return
 
