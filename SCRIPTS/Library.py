@@ -157,9 +157,9 @@ def Create_Mask(dims):
   return
 
  #Define http files
- http_file1 = 'http://freeze.princeton.edu:9090/dods/AFRICAN_WATER_CYCLE_MONITOR/MASK'
- http_file2 = 'http://freeze.princeton.edu:9090/dods/AFRICAN_WATER_CYCLE_MONITOR/MASK_200mm'
- http_file3 = 'http://freeze.princeton.edu:9090/dods/AFRICAN_WATER_CYCLE_MONITOR/MASK_SO'
+ http_file1 = 'http://stream.princeton.edu:9090/dods/AFRICAN_WATER_CYCLE_MONITOR/MASK'
+ http_file2 = 'http://stream.princeton.edu:9090/dods/AFRICAN_WATER_CYCLE_MONITOR/MASK_200mm'
+ http_file3 = 'http://stream.princeton.edu:9090/dods/AFRICAN_WATER_CYCLE_MONITOR/MASK_SO'
 
  #Open file
  ga("sdfopen %s" % http_file1)
@@ -189,12 +189,89 @@ def Create_Mask(dims):
 
  return
 
+def Download_and_Process_and_Create_Images_GFS_Forecast(date,dims,Reprocess_Flag):
+
+ print_info_to_command_line('Downloading and Processing the 6-day GFS Forecast')
+ idate = datetime.datetime(2013,1,1)
+ if date < idate:
+  return
+ #Determine the ensemble number
+ iensemble = (date - idate).days + 1
+ #Download data
+ file = '../DATA_GRID/%04d/%02d/%02d/GFS_7DAY_FORECAST_%d%02d%02d_daily.nc' % (date.year,date.month,date.day,date.year,date.month,date.day)
+ if os.path.exists(file) == False or Reprocess_Flag == True:
+  #Open grads access
+  http_file = "http://stream.princeton.edu:9090/dods/AFRICAN_WATER_CYCLE_MONITOR/GFS_7DAY_FORECAST/DAILY"
+  ga("sdfopen %s" % http_file)
+  #Set the ensemble number
+  ga("set e %d" % iensemble)
+  #Extract variables
+  qh = ga.query("file")
+  vars = qh.vars
+  vars_info = qh.var_titles
+  #Create file
+  fp = Create_NETCDF_File(dims,file,vars,vars_info,date,'days',7)
+  #Add data
+  for i in xrange(0,7):
+   print date + i*relativedelta.relativedelta(days=1)
+   ga("set time %s" % datetime2gradstime(date + i*relativedelta.relativedelta(days=1)))
+   for var in vars:
+     Grads_Regrid(var,'data',dims)
+     fp.variables[var][i] = np.ma.getdata(ga.exp('data'))
+  #Close files 
+  ga("close 1")
+  fp.close()
+
+ print_info_to_command_line('Creating Images for the Seasonal Forecast')
+
+ #Open control file
+ ga("sdfopen %s" % file)
+ #Load mask file
+ ga("sdfopen ../DATA_GRID/MASKS/mask.nc")
+ #Extract all variable information
+ qh = ga.query("file")
+ variables = qh.vars
+ #Create images for all variables
+ date = date.replace(day=1)
+ #Create model directory
+ dir = '../IMAGES/%04d/%02d/%02d/GFS_7DAY_FORECAST'  % (date.year,date.month,date.day)
+ if os.path.exists(dir) == False:
+  os.mkdir(dir)
+ vars = ['spi1','spi3','spi6','spi12']
+ for t in xrange(0,7):
+  #Set time step
+  date_tmp = date + t*relativedelta.relativedelta(days=1)
+  print date_tmp
+  ga("set time %s" % datetime2gradstime(date_tmp))
+  for var in variables:#qh.vars:
+   if var in vars:
+    image_file = '../IMAGES/%04d/%02d/%02d/GFS_7DAY_FORECAST/%s_%04d%02d%02d.png'  % (date.year,date.month,date.day,var,date_tmp.year,date_tmp.month,date_tmp.day)
+    #Skip image if it exists and we don't want to reprocess it
+    #if os.path.exists(image_file) and Reprocess_Flag == False:
+    # continue
+    #Add data
+    ga("data = maskout(%s,mask.2(t=1))" % var)
+    data = ga.exp("data")
+    (cmap,levels,norm) = Define_Colormap(var,'DAILY')
+    cflag = True
+    Create_Image(image_file,data,cmap,levels,norm,cflag)
+    colormap_file = '../IMAGES/COLORBARS/GFS_7DAY_FORECAST_%s_%s.png' % (var,'DAILY')
+    Create_Colorbar(colormap_file,cmap,norm,var,levels)
+
+ #Close access to file
+ ga("close 2")
+ ga("close 1")
+ 
+ return
+
 def Download_and_Process_and_Create_Images_Seasonal_Forecast(date,dims,Reprocess_Flag):
 
  print_info_to_command_line('Downloading and Processing the 6-month Seasonal Forecast') 
  #Iterate through the seasonal forecasts
  models = ['CMC1-CanCM3','CMC2-CanCM4','COLA-RSMAS-CCSM3','GFDL-CM2p1-aer04','MultiModel','NASA-GMAO-062012']
  idate = datetime.datetime(2013,1,1)
+ if date < idate:
+  return
  #Determine the ensemble number
  iensemble = 12*(date.year - idate.year) + max(date.month - idate.month,0) + 1
  #Download data
@@ -203,7 +280,7 @@ def Download_and_Process_and_Create_Images_Seasonal_Forecast(date,dims,Reprocess
   file = '../DATA_GRID/%04d/%02d/%s_monthly.nc' % (date.year,date.month,model)
   if os.path.exists(file) == False or Reprocess_Flag == True:
    #Open grads access
-   http_file = "http://freeze.princeton.edu:9090/dods/AFRICAN_WATER_CYCLE_MONITOR/SEASONAL_FORECAST/%s" % model
+   http_file = "http://stream.princeton.edu:9090/dods/AFRICAN_WATER_CYCLE_MONITOR/SEASONAL_FORECAST/%s" % model
    ga("sdfopen %s" % http_file)
    #Set the ensemble number
    ga("set e %d" % iensemble)
@@ -302,12 +379,17 @@ def Download_and_Process_and_Create_Images_Seasonal_Forecast(date,dims,Reprocess
 
 def Download_and_Process(date,dims,tstep,dataset,info,Reprocess_Flag):
 
+ idate = info['itime']
+ fdate = info['ftime']
+ if date < idate or date > fdate:
+  return info
+
  if dataset in ['CMC1-CanCM3','CMC2-CanCM4','COLA-RSMAS-CCSM3','GFDL-CM2p1-aer04','MultiModel','NASA-GMAO-062012']:
   Download_and_Process_and_Create_Images_Seasonal_Forecast(date,dims,Reprocess_Flag)
-  return
+  return info
 
- idate = info['itime']
- if date < idate:
+ if dataset in ['GFS_7DAY_FORECAST']:
+  Download_and_Process_and_Create_Images_GFS_Forecast(date,dims,False)#Reprocess_Flag)
   return info
 
  #If monthly time step only extract at end of month
@@ -321,7 +403,8 @@ def Download_and_Process(date,dims,tstep,dataset,info,Reprocess_Flag):
  print_info_to_command_line('Dataset: %s Timestep: %s (Downloading and Processing data)' % (dataset,tstep))
 
  #Define the grads server root
- http_file = "http://freeze.princeton.edu:9090/dods/AFRICAN_WATER_CYCLE_MONITOR/%s/%s" % (dataset,tstep)
+ http_file = "http://stream.princeton.edu:9090/dods/AFRICAN_WATER_CYCLE_MONITOR/%s/%s" % (dataset,tstep)
+ print http_file
 
  #Open access to grads data server
  ga("sdfopen %s" % http_file)

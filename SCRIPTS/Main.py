@@ -39,8 +39,8 @@ def Read_and_Process_Main_Info():
    for dataset in variable.findall('dataset'):
     dataset_name = dataset.attrib['name']
     dataset_timestep = dataset.attrib['ts']
-    dataset_itime = datetime.datetime.strptime(dataset.attrib['itime'],'%d%b%Y')
-    dataset_ftime = datetime.datetime.strptime(dataset.attrib['ftime'],'%d%b%Y')
+    dataset_itime = datetime.datetime.strptime(dataset.attrib['itime'],'%Y/%m/%d')
+    dataset_ftime = datetime.datetime.strptime(dataset.attrib['ftime'],'%Y/%m/%d')
     try:
      datasets[dataset_name]
     except:
@@ -70,8 +70,8 @@ date = datetime.datetime.today()
 #Always redownload and reprocess the last 30 days
 idate = datetime.datetime(date.year,date.month,date.day) - 32*dt
 fdate = idate + datetime.timedelta(days=30)
-idate = datetime.datetime(2013,7,31)
-fdate = datetime.datetime(2013,7,31)
+idate = datetime.datetime(2013,9,1)
+fdate = datetime.datetime(2013,9,1)
 
 #2. Download all the requested data
 date = idate
