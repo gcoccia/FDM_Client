@@ -247,8 +247,8 @@ def Download_and_Process_and_Create_Images_GFS_Forecast(date,dims,Reprocess_Flag
    if var in vars:
     image_file = '../IMAGES/%04d/%02d/%02d/GFS_7DAY_FORECAST/%s_%04d%02d%02d.png'  % (date.year,date.month,date.day,var,date_tmp.year,date_tmp.month,date_tmp.day)
     #Skip image if it exists and we don't want to reprocess it
-    #if os.path.exists(image_file) and Reprocess_Flag == False:
-    # continue
+    if os.path.exists(image_file) and Reprocess_Flag == False:
+     continue
     #Add data
     ga("data = maskout(%s,mask.2(t=1))" % var)
     data = ga.exp("data")
@@ -301,42 +301,11 @@ def Download_and_Process_and_Create_Images_Seasonal_Forecast(date,dims,Reprocess
    ga("close 1")
    fp.close()
 
-  #Create the updated control file
-  fdate = date
-  nmonths = 12*(fdate.year - idate.year) + max(fdate.month-idate.month,0) + 1
-  ctl = '../DATA_GRID/CTL/%s_MONTHLY.ctl' % model
-  fp = open(ctl,'w')
-  fp.write('dset ^../%s/%s_monthly.nc\n' % ('%e',model))
-  fp.write('options template\n')
-  fp.write('dtype netcdf\n')
-  fp.write('title Seasonal Forecast %s\n' % model)
-  fp.write('undef -9.99e+08\n')
-  fp.write('xdef %d  linear %f %f\n' % (dims['nlon'],dims['minlon'],dims['res']))
-  fp.write('ydef %d  linear %f %f\n' % (dims['nlat'],dims['minlat'],dims['res']))
-  fp.write('tdef %d linear 00Z01%s%d 1mo\n' % (nmonths+6,idate.strftime('%b'),idate.year))
-  fp.write('zdef 1 linear 1 1\n')
-  fp.write('edef %d\n' % nmonths)
-  date_tmp = idate
-  while date_tmp <= fdate:
-   fp.write('%04d/%02d 6 00Z01%s%d 1mo\n' % (date_tmp.year,date_tmp.month,date_tmp.strftime('%b'),date_tmp.year))
-   date_tmp = date_tmp + relativedelta.relativedelta(months=1)
-  fp.write('endedef\n')
-  fp.write('vars 7\n')
-  fp.write('spi1 1 t,y,x data\n')
-  fp.write('spi3 1 t,y,x data\n')
-  fp.write('spi6 1 t,y,x data\n')
-  fp.write('spi12 1 t,y,x data\n')
-  fp.write('prec 1 t,y,x data\n')
-  fp.write('t2ano 1 t,y,x data\n')
-  fp.write('t2m 1 t,y,x data\n')
-  fp.write('endvars\n')
-  fp.close()
-
   #Open access to create images
   print_info_to_command_line('Creating Images for the Seasonal Forecast')
 
   #Open control file
-  ga("open %s" % ctl)
+  ga("sdfopen %s" % file)
   #Load mask file
   ga("sdfopen ../DATA_GRID/MASKS/mask.nc")
   #Extract all variable information
@@ -344,24 +313,20 @@ def Download_and_Process_and_Create_Images_Seasonal_Forecast(date,dims,Reprocess
   variables = qh.vars
   #Create images for all variables
   date = date.replace(day=1)
-  #Set the ensemble number
-  print iensemble
   #Create model directory
   dir = '../IMAGES/%04d/%02d/%s'  % (date.year,date.month,model)
   if os.path.exists(dir) == False:
    os.mkdir(dir)
-  ga("set e %d" % (iensemble))
   for t in xrange(0,6):
    #Set time step
    date_tmp = date + t*relativedelta.relativedelta(months=1)
-   print datetime2gradstime(date_tmp)
+   print date_tmp
    ga("set time %s" % datetime2gradstime(date_tmp))  
-   print date
    for var in variables:#qh.vars:
-    image_file = '../IMAGES/%04d/%02d/%s_%s_%04d%02d.png'  % (date.year,date.month,model,var,date_tmp.year,date_tmp.month)
+    image_file = '../IMAGES/%04d/%02d/%s/%s_%04d%02d.png'  % (date.year,date.month,model,var,date_tmp.year,date_tmp.month)
     #Skip image if it exists and we don't want to reprocess it
-    if os.path.exists(image_file) and Reprocess_Flag == False:
-     continue
+    #if os.path.exists(image_file) and Reprocess_Flag == False:
+    # continue
     #Add data
     ga("data = %s" % var)
     data = ga.exp("data")
