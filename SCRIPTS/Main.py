@@ -32,6 +32,7 @@ def Read_and_Process_Main_Info():
  datasets = {}
  groups = root.find('variables').findall('group')
  for group in groups:
+  group_name = group.attrib['name']
   for variable in group.findall('datatype'):
    variable_name = variable.attrib['name']
    variable_units = variable.attrib['units']
@@ -49,6 +50,7 @@ def Read_and_Process_Main_Info():
      datasets[dataset_name]['timestep'] = []
      datasets[dataset_name]['itime'] = dataset_itime
      datasets[dataset_name]['ftime'] = dataset_ftime
+     datasets[dataset_name]['group'] = group_name
      for tstep in dataset_timestep:
       if tstep == 'D':
        datasets[dataset_name]['timestep'].append('DAILY')
@@ -88,7 +90,7 @@ while date <= fdate:
   for tstep in datasets[dataset]['timestep']:
 
    #Download and process the data
-   datasets[dataset] = cl.Download_and_Process(date,dims,tstep,dataset,datasets[dataset],True)
+   #datasets[dataset] = cl.Download_and_Process(date,dims,tstep,dataset,datasets[dataset],True)
    
    #Create Images
    cl.Create_Images(date,dims,dataset,tstep,datasets[dataset],True)

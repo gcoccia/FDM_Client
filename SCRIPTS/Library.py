@@ -462,7 +462,7 @@ def datetime2outputtime(date,timestep):
  return (dir_output,date_output)
 
 def Create_Images(date,dims,dataset,timestep,info,Reprocess_Flag):
- 
+
  variables = info['variables']
  idate = info['itime']
  fdate = info['ftime']
@@ -483,32 +483,53 @@ def Create_Images(date,dims,dataset,timestep,info,Reprocess_Flag):
 
  print_info_to_command_line('Dataset: %s Timestep: %s (Creating Images)' % (dataset,timestep))
  
+ #Define the file to read
+ (dir_output,date_output) = datetime2outputtime(date,timestep) 
+ file_netcdf = '../DATA_GRID/%s/%s_%s_%s.nc' % (dir_output,dataset,date_output,timestep.lower())
  #Open control file
- ga("xdfopen ../DATA_GRID/CTL/%s_%s.ctl" % (dataset,timestep))
+ ga("sdfopen %s" % file_netcdf)
  #Load mask file
  ga("sdfopen ../DATA_GRID/MASKS/mask.nc")
- #Define timestamp
- (dir_output,date_output) = datetime2outputtime(date,timestep) 
- #Extract all variable information
- #qh = ga.query("file")
+ #Determine the number of time steps
+ ga("set t 1 last")
+ nt = ga.query('dims').nt
+
+ #Define the dt
+ if timestep == 'DAILY':
+  dt = relativedelta.relativedelta(days = 1)
+ elif timestep == 'MONTHLY':
+  dt = relativedelta.relativedelta(months = 1)
+ elif timestep == 'YEARLY':
+  dt = relativedelta.relativedelta(years = 1)
+
  #Create images for all variables
- for var in variables:#qh.vars:
-  image_file = '../IMAGES/%s/%s_%s_%s.png'  % (dir_output,dataset,var,date_output)
-  #Skip image if it exists and we don't want to reprocess it
-  if os.path.exists(image_file) and Reprocess_Flag == False:
-   continue
-  ga("set time %s" % datetime2gradstime(date))
-  ga("data = maskout(%s,%s.2(t=1))" % (var,variables[var]['mask']))
-  if var in ["spi1","spi3","spi6","spi12","vcpct","vc1","vc2","pct30day"]:
-   ga("data = smth9(data)")
-  data = ga.exp("data")
-  (cmap,levels,norm) = Define_Colormap(var,timestep)
-  cflag = True
-  if var in ['flw','flw_pct']:
-   cflag = False
-  Create_Image(image_file,data,cmap,levels,norm,cflag)
-  colormap_file = '../IMAGES/COLORBARS/%s_%s_%s.png' % (dataset,var,timestep)
-  Create_Colorbar(colormap_file,cmap,norm,var,levels)
+ image_dir = '../IMAGES/%s/%s'  % (dir_output,dataset)
+ if os.path.exists(image_dir) == False:
+  os.mkdir(image_dir)
+ #Iterate through all the time steps (if monitor it will only be one...)
+ for t in xrange(0,nt):
+  #Set time step
+  date_tmp = date + t*dt#relativedelta.relativedelta(dt[timestep] = 1)
+  (dir_output,date_output) = datetime2outputtime(date_tmp,timestep)
+  print date_tmp
+  ga("set time %s" % datetime2gradstime(date_tmp))
+  #Create image and colorbars for all variables  
+  for var in variables:#qh.vars:
+   image_file = '%s/%s_%s.png'  % (image_dir,var,date_output)
+   #Skip image if it exists and we don't want to reprocess it
+   if os.path.exists(image_file) and Reprocess_Flag == False:
+    continue
+   ga("data = maskout(%s,%s.2(t=1))" % (var,variables[var]['mask']))
+   if var in ["spi1","spi3","spi6","spi12","vcpct","vc1","vc2","pct30day"]:
+    ga("data = smth9(data)")
+   data = ga.exp("data")
+   (cmap,levels,norm) = Define_Colormap(var,timestep)
+   cflag = True
+   if var in ['flw','flw_pct']:
+    cflag = False
+   Create_Image(image_file,data,cmap,levels,norm,cflag)
+   colormap_file = '../IMAGES/COLORBARS/%s_%s_%s.png' % (dataset,var,timestep)
+   Create_Colorbar(colormap_file,cmap,norm,var,levels)
 
  #Close access to file
  ga("close 2")
