@@ -1,6 +1,0 @@
- ! NOAA/PMEL TMAP
- ! FERRET v6.842  
- ! Linux 2.6.32-279.19.1.el6.x86_64 64-bit - 02/01/13
- !  1-Aug-13 06:54     
-
-set data "http://iridl.ldeo.columbia.edu/SOURCES/.Models/.NMME/.GFDL-CM2p1-aer04/.MONTHLY/.prec/S/%280000%201%20Jul%202013%29%280000%201%20Jul%202013%29RANGEEDGES/M/%281.%29VALUES/M/%280.%29VALUES/dods"

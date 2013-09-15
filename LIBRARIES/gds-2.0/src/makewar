@@ -1,9 +1,0 @@
-#!/bin/sh
-#
-# Script to build GDS web archive
-#
-# Copyright (C) 2000-2004 Institute for Global Environment and Society /
-#                        Center for Ocean-Land-Atmosphere Studies
-# Author: Joe Wielgosz <joew@cola.iges.org>
-#
-jar cf dods.war -C ../tomcat4/webapps/dods .
