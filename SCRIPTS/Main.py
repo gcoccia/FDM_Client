@@ -72,10 +72,13 @@ date = datetime.datetime.today()
 #Always redownload and reprocess the last 30 days
 idate = datetime.datetime(date.year,date.month,date.day) - 32*dt
 fdate = idate + datetime.timedelta(days=30)
-idate = datetime.datetime(2013,8,31)
-fdate = datetime.datetime(2013,8,31)
+idate = datetime.datetime(2013,9,1)
+fdate = datetime.datetime(2013,9,1)
 
-#2. Download all the requested data
+#Prepare the mask
+cl.Create_Mask(dims)
+
+#Download all the requested data
 date = idate
 while date <= fdate:
 
@@ -83,19 +86,33 @@ while date <= fdate:
 
  #Setup routines
  cl.Setup_Routines(date)
- cl.Create_Mask(dims)
 
  #For each availabe data set:
  for dataset in datasets:
   for tstep in datasets[dataset]['timestep']:
 
    #Download and process the data
-   #datasets[dataset] = cl.Download_and_Process(date,dims,tstep,dataset,datasets[dataset],True)
+   datasets[dataset] = cl.Download_and_Process(date,dims,tstep,dataset,datasets[dataset],True)
    
+ date = date + dt
+
+#Preparing all the images
+date = idate 
+while date <= fdate:
+
+ print date
+
+ #Create Images
+
+ #For each availabe data set:
+ for dataset in datasets:
+  for tstep in datasets[dataset]['timestep']:
+
    #Create Images
    cl.Create_Images(date,dims,dataset,tstep,datasets[dataset],True)
-
+ 
  date = date + dt
+
 '''
 #3. Create and update the point data
 #for dataset in datasets:

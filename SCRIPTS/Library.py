@@ -189,158 +189,20 @@ def Create_Mask(dims):
 
  return
 
-def Download_and_Process_and_Create_Images_GFS_Forecast(date,dims,Reprocess_Flag):
+def Find_Ensemble_Number(group,timestep,idate,date):
 
- print_info_to_command_line('Downloading and Processing the 6-day GFS Forecast')
- idate = datetime.datetime(2013,1,1)
- if date < idate:
-  return
- #Determine the ensemble number
- iensemble = (date - idate).days + 1
- #Download data
- file = '../DATA_GRID/%04d/%02d/%02d/GFS_7DAY_FORECAST_%d%02d%02d_daily.nc' % (date.year,date.month,date.day,date.year,date.month,date.day)
- if os.path.exists(file) == False or Reprocess_Flag == True:
-  #Open grads access
-  http_file = "http://stream.princeton.edu:9090/dods/AFRICAN_WATER_CYCLE_MONITOR/GFS_7DAY_FORECAST/DAILY"
-  ga("sdfopen %s" % http_file)
-  #Set the ensemble number
-  ga("set e %d" % iensemble)
-  #Extract variables
-  qh = ga.query("file")
-  vars = qh.vars
-  vars_info = qh.var_titles
-  #Create file
-  fp = Create_NETCDF_File(dims,file,vars,vars_info,date,'days',7)
-  #Add data
-  for i in xrange(0,7):
-   print date + i*relativedelta.relativedelta(days=1)
-   ga("set time %s" % datetime2gradstime(date + i*relativedelta.relativedelta(days=1)))
-   for var in vars:
-     Grads_Regrid(var,'data',dims)
-     fp.variables[var][i] = np.ma.getdata(ga.exp('data'))
-  #Close files 
-  ga("close 1")
-  fp.close()
+ if group == 'Forecast':
+  if timestep == 'MONTHLY':
+   iensemble = 12*(date.year - idate.year) + max(date.month - idate.month,0) + 1  
+   nt = 6
+  if timestep == 'DAILY':
+   iensemble = (date - idate).days + 1
+   nt = 7
+ else:
+  iensemble = 1
+  nt = 1
 
- print_info_to_command_line('Creating Images for the Seasonal Forecast')
-
- #Open control file
- ga("sdfopen %s" % file)
- #Load mask file
- ga("sdfopen ../DATA_GRID/MASKS/mask.nc")
- #Extract all variable information
- qh = ga.query("file")
- variables = qh.vars
- #Create images for all variables
- date = date.replace(day=1)
- #Create model directory
- dir = '../IMAGES/%04d/%02d/%02d/GFS_7DAY_FORECAST'  % (date.year,date.month,date.day)
- if os.path.exists(dir) == False:
-  os.mkdir(dir)
- vars = ['spi1','spi3','spi6','spi12']
- for t in xrange(0,7):
-  #Set time step
-  date_tmp = date + t*relativedelta.relativedelta(days=1)
-  print date_tmp
-  ga("set time %s" % datetime2gradstime(date_tmp))
-  for var in variables:#qh.vars:
-   if var in vars:
-    image_file = '../IMAGES/%04d/%02d/%02d/GFS_7DAY_FORECAST/%s_%04d%02d%02d.png'  % (date.year,date.month,date.day,var,date_tmp.year,date_tmp.month,date_tmp.day)
-    #Skip image if it exists and we don't want to reprocess it
-    if os.path.exists(image_file) and Reprocess_Flag == False:
-     continue
-    #Add data
-    ga("data = maskout(%s,mask.2(t=1))" % var)
-    data = ga.exp("data")
-    (cmap,levels,norm) = Define_Colormap(var,'DAILY')
-    cflag = True
-    Create_Image(image_file,data,cmap,levels,norm,cflag)
-    colormap_file = '../IMAGES/COLORBARS/GFS_7DAY_FORECAST_%s_%s.png' % (var,'DAILY')
-    Create_Colorbar(colormap_file,cmap,norm,var,levels)
-
- #Close access to file
- ga("close 2")
- ga("close 1")
- 
- return
-
-def Download_and_Process_and_Create_Images_Seasonal_Forecast(date,dims,Reprocess_Flag):
-
- print_info_to_command_line('Downloading and Processing the 6-month Seasonal Forecast') 
- #Iterate through the seasonal forecasts
- models = ['CMC1-CanCM3','CMC2-CanCM4','COLA-RSMAS-CCSM3','GFDL-CM2p1-aer04','MultiModel','NASA-GMAO-062012']
- idate = datetime.datetime(2013,1,1)
- if date < idate:
-  return
- #Determine the ensemble number
- iensemble = 12*(date.year - idate.year) + max(date.month - idate.month,0) + 1
- #Download data
- for model in models:
-  print model
-  file = '../DATA_GRID/%04d/%02d/%s_monthly.nc' % (date.year,date.month,model)
-  if os.path.exists(file) == False or Reprocess_Flag == True:
-   #Open grads access
-   http_file = "http://stream.princeton.edu:9090/dods/AFRICAN_WATER_CYCLE_MONITOR/SEASONAL_FORECAST/%s" % model
-   ga("sdfopen %s" % http_file)
-   #Set the ensemble number
-   ga("set e %d" % iensemble)
-   #Extract variables
-   qh = ga.query("file")
-   vars = qh.vars
-   vars_info = qh.var_titles
-   #Create file
-   fp = Create_NETCDF_File(dims,file,vars,vars_info,datetime.datetime(date.year,date.month,1),'months',6)
-   #Add data
-   date = date.replace(day=1)
-   for i in xrange(0,6):
-    ga("set time %s" % datetime2gradstime(date + i*relativedelta.relativedelta(months=1)))
-    for var in vars:
-     Grads_Regrid(var,'data',dims)
-     fp.variables[var][i] = np.ma.getdata(ga.exp('data'))
-   #Close files 
-   ga("close 1")
-   fp.close()
-
-  #Open access to create images
-  print_info_to_command_line('Creating Images for the Seasonal Forecast')
-
-  #Open control file
-  ga("sdfopen %s" % file)
-  #Load mask file
-  ga("sdfopen ../DATA_GRID/MASKS/mask.nc")
-  #Extract all variable information
-  qh = ga.query("file")
-  variables = qh.vars
-  #Create images for all variables
-  date = date.replace(day=1)
-  #Create model directory
-  dir = '../IMAGES/%04d/%02d/%s'  % (date.year,date.month,model)
-  if os.path.exists(dir) == False:
-   os.mkdir(dir)
-  for t in xrange(0,6):
-   #Set time step
-   date_tmp = date + t*relativedelta.relativedelta(months=1)
-   print date_tmp
-   ga("set time %s" % datetime2gradstime(date_tmp))  
-   for var in variables:#qh.vars:
-    image_file = '../IMAGES/%04d/%02d/%s/%s_%04d%02d.png'  % (date.year,date.month,model,var,date_tmp.year,date_tmp.month)
-    #Skip image if it exists and we don't want to reprocess it
-    #if os.path.exists(image_file) and Reprocess_Flag == False:
-    # continue
-    #Add data
-    ga("data = %s" % var)
-    data = ga.exp("data")
-    (cmap,levels,norm) = Define_Colormap(var,'DAILY')
-    cflag = True
-    Create_Image(image_file,data,cmap,levels,norm,cflag)
-    colormap_file = '../IMAGES/COLORBARS/%s_%s_%s.png' % (model,var,'DAILY')
-    Create_Colorbar(colormap_file,cmap,norm,var,levels)
-
-  #Close access to file
-  ga("close 2")
-  ga("close 1")
-
- return
+ return (nt,iensemble)
 
 def Download_and_Process(date,dims,tstep,dataset,info,Reprocess_Flag):
 
@@ -349,16 +211,11 @@ def Download_and_Process(date,dims,tstep,dataset,info,Reprocess_Flag):
  if date < idate or date > fdate:
   return info
 
- if dataset in ['CMC1-CanCM3','CMC2-CanCM4','COLA-RSMAS-CCSM3','GFDL-CM2p1-aer04','MultiModel','NASA-GMAO-062012']:
-  Download_and_Process_and_Create_Images_Seasonal_Forecast(date,dims,Reprocess_Flag)
-  return info
-
- if dataset in ['GFS_7DAY_FORECAST']:
-  Download_and_Process_and_Create_Images_GFS_Forecast(date,dims,False)#Reprocess_Flag)
-  return info
+ #Determine the ensemble number
+ (nt,iensemble) = Find_Ensemble_Number(info['group'],tstep,idate,date)#12*(date.year - idate.year) + max(date.month - idate.month,0) + 1
 
  #If monthly time step only extract at end of month
- if tstep == "MONTHLY" and (date + datetime.timedelta(days=1)).month == date.month:
+ if tstep == "MONTHLY" and (date + datetime.timedelta(days=1)).month == date.month and info['groups'] != 'Forecast':
   return info
 
  #If yearly time step only extract at end of month
@@ -369,7 +226,6 @@ def Download_and_Process(date,dims,tstep,dataset,info,Reprocess_Flag):
 
  #Define the grads server root
  http_file = "http://stream.princeton.edu:9090/dods/AFRICAN_WATER_CYCLE_MONITOR/%s/%s" % (dataset,tstep)
- print http_file
 
  #Open access to grads data server
  ga("sdfopen %s" % http_file)
@@ -378,9 +234,6 @@ def Download_and_Process(date,dims,tstep,dataset,info,Reprocess_Flag):
  qh = ga.query("file")
  vars = qh.vars
  vars_info = qh.var_titles
- nt = qh.nt
- #ga("set t 1")
- #idate = gradstime2datetime(ga.exp(vars[0]).grid.time[0])
 
  #If the date is before the first time step return
  if date < idate:
@@ -392,51 +245,65 @@ def Download_and_Process(date,dims,tstep,dataset,info,Reprocess_Flag):
  fdate = gradstime2datetime(ga.exp(vars[0]).grid.time[0])
  info['ftime'] = fdate
 
- #Create/Update the control file
- file = '../DATA_GRID/CTL/%s_%s.ctl' % (dataset,tstep)
- fp = open(file,'w')
- if tstep == "DAILY":
-  fp.write('dset ^../%s/%s/%s/%s_%s%s%s_daily.nc\n' % ('%y4','%m2','%d2',dataset,'%y4','%m2','%d2'))
- if tstep == "MONTHLY":
-  fp.write('dset ^../%s/%s/%s_%s%s_monthly.nc\n' % ('%y4','%m2',dataset,'%y4','%m2'))
- if tstep == "YEARLY":
-  fp.write('dset ^../%s/%s_%s_yearly.nc\n' % ('%y4',dataset,'%y4'))
- fp.write('options template\n')
- fp.write('dtype netcdf\n')
- if tstep == "DAILY":
-  fp.write('tdef t %d linear %s %s\n' % (nt,datetime2gradstime(idate),'1dy'))
- if tstep == "MONTHLY":
-  fp.write('tdef t %d linear %s %s\n' % (nt,datetime2gradstime(idate),'1mo'))
- if tstep == "YEARLY":
-  fp.write('tdef t %d linear %s %s\n' % (nt,datetime2gradstime(idate),'1yr'))
- fp.close()
+ if info['group'] != 'Forecast':
+  #Create/Update the control file
+  file = '../DATA_GRID/CTL/%s_%s.ctl' % (dataset,tstep)
+  fp = open(file,'w')
+  if tstep == "DAILY":
+   fp.write('dset ^../%s/%s/%s/%s_%s%s%s_daily.nc\n' % ('%y4','%m2','%d2',dataset,'%y4','%m2','%d2'))
+  if tstep == "MONTHLY":
+   fp.write('dset ^../%s/%s/%s_%s%s_monthly.nc\n' % ('%y4','%m2',dataset,'%y4','%m2'))
+  if tstep == "YEARLY":
+   fp.write('dset ^../%s/%s_%s_yearly.nc\n' % ('%y4',dataset,'%y4'))
+  fp.write('options template\n')
+  fp.write('dtype netcdf\n')
+  if tstep == "DAILY":
+   fp.write('tdef t %d linear %s %s\n' % (nt,datetime2gradstime(idate),'1dy'))
+  if tstep == "MONTHLY":
+   fp.write('tdef t %d linear %s %s\n' % (nt,datetime2gradstime(idate),'1mo'))
+  if tstep == "YEARLY":
+   fp.write('tdef t %d linear %s %s\n' % (nt,datetime2gradstime(idate),'1yr'))
+  fp.close()
  
  #Set grads region
  ga("set lat %f %f" % (dims['minlat'],dims['maxlat']))
  ga("set lon %f %f" % (dims['minlon'],dims['maxlon']))
 
- #Regrid and write variables to file
- timestamp = datetime2gradstime(date)
- ga("set time %s" % timestamp)
- 
  #Define new filename
  if tstep == "DAILY":
   file = '../DATA_GRID/%04d/%02d/%02d/%s_%04d%02d%02d_daily.nc' % (date.year,date.month,date.day,dataset,date.year,date.month,date.day)
+  dt = relativedelta.relativedelta(days=1)
+  nc_tstep = 'days'
  if tstep == "MONTHLY":
   file = '../DATA_GRID/%04d/%02d/%s_%04d%02d_monthly.nc' % (date.year,date.month,dataset,date.year,date.month)
+  dt = relativedelta.relativedelta(months=1)
+  nc_tstep = 'months'
+  date = datetime.datetime(date.year,date.month,1)
  if tstep == "YEARLY":
   file = '../DATA_GRID/%04d/%s_%04d_yearly.nc' % (date.year,dataset,date.year)
+  dt = relativedelta.relativedelta(years=1)
+  nc_tstep = 'years'
+  date = datetime.datetime(date.year,1,1)
 
   #If file exists, exit
  if os.path.exists(file) == True and Reprocess_Flag == False:
   ga("close 1")
   return info
 
- fp = Create_NETCDF_File(dims,file,vars,vars_info,date,'days',1)
+ fp = Create_NETCDF_File(dims,file,vars,vars_info,date,nc_tstep,nt)
  data = []
- for var in vars:
-  Grads_Regrid(var,'data',dims)
-  fp.variables[var][0] = np.ma.getdata(ga.exp('data'))
+ #Set the ensemble number
+ ga("set e %d" % iensemble)
+ #Regrid and write variables to file
+ for t in xrange(0,nt):
+  timestamp = datetime2gradstime(date + t*dt)
+  ga("set time %s" % timestamp)
+  for var in vars:
+   Grads_Regrid(var,'data',dims)
+   data = ga.exp('data')
+   if info['group'] == "Forecast" and var == "prec" and tstep == "MONTHLY":
+    data = 30.5*data #NEED TO CHANGE.. NOT CORRECT
+   fp.variables[var][t] = data
 
  #Close files 
  ga("close 1")
@@ -528,7 +395,7 @@ def Create_Images(date,dims,dataset,timestep,info,Reprocess_Flag):
    if var in ['flw','flw_pct']:
     cflag = False
    Create_Image(image_file,data,cmap,levels,norm,cflag)
-   colormap_file = '../IMAGES/COLORBARS/%s_%s_%s.png' % (dataset,var,timestep)
+   colormap_file = '../IMAGES/COLORBARS/%s--%s_%s.png' % (dataset,var,timestep)
    Create_Colorbar(colormap_file,cmap,norm,var,levels)
 
  #Close access to file
