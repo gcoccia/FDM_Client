@@ -72,8 +72,8 @@ date = datetime.datetime.today()
 #Always redownload and reprocess the last 30 days
 idate = datetime.datetime(date.year,date.month,date.day) - 32*dt
 fdate = idate + datetime.timedelta(days=30)
-idate = datetime.datetime(2013,9,1)
-fdate = datetime.datetime(2013,9,1)
+idate = datetime.datetime(2013,9,13)
+fdate = datetime.datetime(2013,9,13)
 
 #Prepare the mask
 cl.Create_Mask(dims)
