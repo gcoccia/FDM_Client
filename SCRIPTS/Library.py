@@ -206,16 +206,8 @@ def Find_Ensemble_Number(group,timestep,idate,date):
 
 def Download_and_Process(date,dims,tstep,dataset,info,Reprocess_Flag):
 
- idate = info['itime']
- fdate = info['ftime']
- if date < idate or date > fdate:
-  return info
-
- #Determine the ensemble number
- (nt,iensemble) = Find_Ensemble_Number(info['group'],tstep,idate,date)#12*(date.year - idate.year) + max(date.month - idate.month,0) + 1
-
  #If monthly time step only extract at end of month
- if tstep == "MONTHLY" and (date + datetime.timedelta(days=1)).month == date.month and info['groups'] != 'Forecast':
+ if tstep == "MONTHLY" and (date + datetime.timedelta(days=1)).month == date.month and info['group'] != 'Forecast':
   return info
 
  #If yearly time step only extract at end of month
@@ -235,15 +227,21 @@ def Download_and_Process(date,dims,tstep,dataset,info,Reprocess_Flag):
  vars = qh.vars
  vars_info = qh.var_titles
 
- #If the date is before the first time step return
- if date < idate:
-  ga("close 1")
-  return info
-
  #Determine the last date
  ga("set t last")
  fdate = gradstime2datetime(ga.exp(vars[0]).grid.time[0])
+ ga("set t 1")
+ idate = gradstime2datetime(ga.exp(vars[0]).grid.time[0])
  info['ftime'] = fdate
+ info['itime'] = idate
+
+ #If we are not within the bounds then exit
+ if date < idate or date > fdate:
+  ga("close 1")
+  return info
+
+ #Determine the ensemble number
+ (nt,iensemble) = Find_Ensemble_Number(info['group'],tstep,idate,date)#12*(date.year - idate.year) + max(date.month - idate.month,0) + 1
 
  if info['group'] != 'Forecast':
   #Create/Update the control file

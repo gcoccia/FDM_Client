@@ -72,8 +72,8 @@ date = datetime.datetime.today()
 #Always redownload and reprocess the last 30 days
 idate = datetime.datetime(date.year,date.month,date.day) - 32*dt
 fdate = idate + datetime.timedelta(days=30)
-idate = datetime.datetime(2013,9,13)
-fdate = datetime.datetime(2013,9,13)
+idate = datetime.datetime(2013,9,12)
+fdate = datetime.datetime(2013,9,12)
 
 #Prepare the mask
 cl.Create_Mask(dims)
@@ -92,6 +92,7 @@ while date <= fdate:
   for tstep in datasets[dataset]['timestep']:
 
    #Download and process the data
+   print datasets[dataset]['group']
    datasets[dataset] = cl.Download_and_Process(date,dims,tstep,dataset,datasets[dataset],True)
    
  date = date + dt
