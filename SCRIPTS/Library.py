@@ -7,13 +7,9 @@ import grads
 import numpy as np
 from mpl_toolkits.basemap import Basemap,cm
 import time
-#import fileinput
 import netCDF4 as netcdf
-#import pyhdf.SD as sd
-#import scipy.stats as ss
-#import subprocess
 import dateutil.relativedelta as relativedelta
-#from cython.parallel import prange
+import xml.etree.ElementTree as ET
 grads_exe = '../LIBRARIES/grads-2.0.1.oga.1/Contents/grads'
 ga = grads.GrADS(Bin=grads_exe,Window=False,Echo=False)
 xml_settings = '../web_nchaney/settings.xml'
@@ -27,18 +23,20 @@ def print_info_to_command_line(line):
 
  return
 
-def Update_XML(group_name,var_name,dataset_name,itime):
- tree = ET.parse(xml_settings)
+'''
+def Update_XML(tree,var_name,dataset_name,ftime):
+ #tree = ET.parse(xml_settings)
  root = tree.getroot()
- for group in root.find('variables'):
-  if group.attrib['name'] == group_name:
-   for var in group:
-    if var.attrib['name'] == var_name:
-     for dataset in var:
-      if dataset.attrib['name'] == dataset_name:
-       dataset.attrib['ftime'] = 'here'
-       tree.write('test.xml')
- return
+ groups = root.find('variables').findall('group')
+ for group in root.find('variables').findall('group'):
+  for variable in group.findall('datatype'):
+   if variable.attrib['name'] == var_name:
+    for dataset in variable.findall('dataset'):
+     if dataset.attrib['name'] == dataset_name:
+      dataset.attrib['ftime'] = 'here'
+      #tree.write('settings.xml')
+ return tree
+'''
 
 def Check_and_Make_Directory(dir):
 
@@ -232,6 +230,10 @@ def Download_and_Process(date,dims,tstep,dataset,info,Reprocess_Flag):
  fdate = gradstime2datetime(ga.exp(vars[0]).grid.time[0])
  ga("set t 1")
  idate = gradstime2datetime(ga.exp(vars[0]).grid.time[0])
+ if info['group'] == 'Forecast' and tstep == 'MONTHLY':
+  fdate = fdate - 5*relativedelta.relativedelta(months=1)
+ if info['group'] == 'Forecast' and tstep == 'DAILY':
+  fdate = fdate - 6*relativedelta.relativedelta(days=1)
  info['ftime'] = fdate
  info['itime'] = idate
 

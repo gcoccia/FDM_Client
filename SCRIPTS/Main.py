@@ -13,6 +13,19 @@ import numpy as np
 import xml.etree.ElementTree as ET
 import datetime
 
+def Update_XML(tree,var_name,dataset_name,itime,ftime):
+ #tree = ET.parse(xml_settings)
+ root = tree.getroot()
+ groups = root.find('variables').findall('group')
+ for group in root.find('variables').findall('group'):
+  for variable in group.findall('datatype'):
+   if variable.attrib['name'] == var_name:
+    for dataset in variable.findall('dataset'):
+     if dataset.attrib['name'] == dataset_name:
+      dataset.attrib['ftime'] = ftime.strftime('%Y/%m/%d')
+      dataset.attrib['itime'] = itime.strftime('%Y/%m/%d')
+ return tree
+
 def Read_and_Process_Main_Info():
 
  tree = ET.parse('../web_nchaney/settings.xml')
@@ -92,8 +105,7 @@ while date <= fdate:
   for tstep in datasets[dataset]['timestep']:
 
    #Download and process the data
-   print datasets[dataset]['group']
-   datasets[dataset] = cl.Download_and_Process(date,dims,tstep,dataset,datasets[dataset],True)
+   datasets[dataset] = cl.Download_and_Process(date,dims,tstep,dataset,datasets[dataset],False)
    
  date = date + dt
 
@@ -110,7 +122,8 @@ while date <= fdate:
   for tstep in datasets[dataset]['timestep']:
 
    #Create Images
-   cl.Create_Images(date,dims,dataset,tstep,datasets[dataset],True)
+   print dataset
+   #cl.Create_Images(date,dims,dataset,tstep,datasets[dataset],True)
  
  date = date + dt
 
@@ -121,7 +134,16 @@ for tstep in ['DAILY','MONTHLY','YEARLY']:
   print "%s" % (tstep)
   cl.Create_and_Update_All_Point_Data(idate,fdate,datasets,tstep)
   #cl.Create_and_Update_Point_Data(idate,fdate,tstep,dataset,datasets[dataset]['variables'])
+'''
 
 #4. Update the xml file
-#cl.Update_XML_File(datasets)
-'''
+xml_settings = '../web_nchaney/settings.xml'
+tree = ET.parse(xml_settings)
+for dataset in datasets:
+ itime = datasets[dataset]['itime']
+ ftime = datasets[dataset]['ftime']
+ for variable in datasets[dataset]['variables']:
+  print dataset,variable
+  Update_XML(tree,variable,dataset,itime,ftime)
+#Write the new xml file
+tree.write('settings.xml')
