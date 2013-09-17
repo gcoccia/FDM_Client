@@ -12,7 +12,83 @@ import dateutil.relativedelta as relativedelta
 import xml.etree.ElementTree as ET
 grads_exe = '../LIBRARIES/grads-2.0.1.oga.1/Contents/grads'
 ga = grads.GrADS(Bin=grads_exe,Window=False,Echo=False)
-xml_settings = '../web_nchaney/settings.xml'
+
+def Read_and_Process_Main_Info():
+
+ tree = ET.parse('../settings.xml')
+ root = tree.getroot()
+
+ #Pull dimensions
+ dims = {}
+ dims['res'] = float(root.find('dimensions').find('res').text)
+ dims['minlat'] = float(root.find('dimensions').find('minlat').text)
+ dims['minlon'] = float(root.find('dimensions').find('minlon').text)
+ dims['nlat'] = int(root.find('dimensions').find('nlat').text)
+ dims['nlon'] = int(root.find('dimensions').find('nlon').text)
+ dims['maxlat'] = dims['minlat'] + dims['res']*(dims['nlat']-1)
+ dims['maxlon'] = dims['minlon'] + dims['res']*(dims['nlon']-1)
+
+ #Pull datasets
+ datasets = {}
+ groups = root.find('variables').findall('group')
+ for group in groups:
+  group_name = group.attrib['name']
+  for variable in group.findall('datatype'):
+   variable_name = variable.attrib['name']
+   variable_units = variable.attrib['units']
+   variable_mask = variable.attrib['mask']
+   for dataset in variable.findall('dataset'):
+    dataset_name = dataset.attrib['name']
+    dataset_timestep = dataset.attrib['ts']
+    dataset_itime = datetime.datetime.strptime(dataset.attrib['itime'],'%Y/%m/%d')
+    dataset_ftime = datetime.datetime.strptime(dataset.attrib['ftime'],'%Y/%m/%d')
+    try:
+     datasets[dataset_name]
+    except:
+     datasets[dataset_name] = {}
+     datasets[dataset_name]['variables'] = {}
+     datasets[dataset_name]['timestep'] = []
+     datasets[dataset_name]['itime'] = dataset_itime
+     datasets[dataset_name]['ftime'] = dataset_ftime
+     datasets[dataset_name]['group'] = group_name
+     for tstep in dataset_timestep:
+      if tstep == 'D':
+       datasets[dataset_name]['timestep'].append('DAILY')
+      if tstep == 'M':
+       datasets[dataset_name]['timestep'].append('MONTHLY')
+      if tstep == 'Y':
+       datasets[dataset_name]['timestep'].append('YEARLY')
+    #Add the variable information 
+    datasets[dataset_name]['variables'][variable_name] = {}
+    datasets[dataset_name]['variables'][variable_name]['units'] = variable_units
+    datasets[dataset_name]['variables'][variable_name]['mask'] = variable_mask
+ return (dims,datasets)
+
+def Update_XML_File(datasets):
+ print_info_to_command_line('Updating the XML file')
+ xml_settings = '../settings.xml'
+ tree = ET.parse(xml_settings)
+ for dataset in datasets:
+  itime = datasets[dataset]['itime']
+  ftime = datasets[dataset]['ftime']
+  for variable in datasets[dataset]['variables']:
+   tree = Update_XML_Contents(tree,variable,dataset,itime,ftime)
+ #Write the new xml file
+ tree.write('../settings.xml')
+ return
+
+def Update_XML_Contents(tree,var_name,dataset_name,itime,ftime):
+ #tree = ET.parse(xml_settings)
+ root = tree.getroot()
+ groups = root.find('variables').findall('group')
+ for group in root.find('variables').findall('group'):
+  for variable in group.findall('datatype'):
+   if variable.attrib['name'] == var_name:
+    for dataset in variable.findall('dataset'):
+     if dataset.attrib['name'] == dataset_name:
+      dataset.attrib['ftime'] = ftime.strftime('%Y/%m/%d')
+      dataset.attrib['itime'] = itime.strftime('%Y/%m/%d')
+ return tree
 
 def print_info_to_command_line(line):
 
@@ -22,21 +98,6 @@ def print_info_to_command_line(line):
  print "\n"
 
  return
-
-'''
-def Update_XML(tree,var_name,dataset_name,ftime):
- #tree = ET.parse(xml_settings)
- root = tree.getroot()
- groups = root.find('variables').findall('group')
- for group in root.find('variables').findall('group'):
-  for variable in group.findall('datatype'):
-   if variable.attrib['name'] == var_name:
-    for dataset in variable.findall('dataset'):
-     if dataset.attrib['name'] == dataset_name:
-      dataset.attrib['ftime'] = 'here'
-      #tree.write('settings.xml')
- return tree
-'''
 
 def Check_and_Make_Directory(dir):
 

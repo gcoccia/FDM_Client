@@ -13,78 +13,12 @@ import numpy as np
 import xml.etree.ElementTree as ET
 import datetime
 
-def Update_XML(tree,var_name,dataset_name,itime,ftime):
- #tree = ET.parse(xml_settings)
- root = tree.getroot()
- groups = root.find('variables').findall('group')
- for group in root.find('variables').findall('group'):
-  for variable in group.findall('datatype'):
-   if variable.attrib['name'] == var_name:
-    for dataset in variable.findall('dataset'):
-     if dataset.attrib['name'] == dataset_name:
-      dataset.attrib['ftime'] = ftime.strftime('%Y/%m/%d')
-      dataset.attrib['itime'] = itime.strftime('%Y/%m/%d')
- return tree
-
-def Read_and_Process_Main_Info():
-
- tree = ET.parse('../web_nchaney/settings.xml')
- root = tree.getroot()
-
- #Pull dimensions
- dims = {}
- dims['res'] = float(root.find('dimensions').find('res').text)
- dims['minlat'] = float(root.find('dimensions').find('minlat').text)
- dims['minlon'] = float(root.find('dimensions').find('minlon').text)
- dims['nlat'] = int(root.find('dimensions').find('nlat').text)
- dims['nlon'] = int(root.find('dimensions').find('nlon').text)
- dims['maxlat'] = dims['minlat'] + dims['res']*(dims['nlat']-1)
- dims['maxlon'] = dims['minlon'] + dims['res']*(dims['nlon']-1)
-
- #Pull datasets
- datasets = {}
- groups = root.find('variables').findall('group')
- for group in groups:
-  group_name = group.attrib['name']
-  for variable in group.findall('datatype'):
-   variable_name = variable.attrib['name']
-   variable_units = variable.attrib['units']
-   variable_mask = variable.attrib['mask']
-   for dataset in variable.findall('dataset'):
-    dataset_name = dataset.attrib['name']
-    dataset_timestep = dataset.attrib['ts']
-    dataset_itime = datetime.datetime.strptime(dataset.attrib['itime'],'%Y/%m/%d')
-    dataset_ftime = datetime.datetime.strptime(dataset.attrib['ftime'],'%Y/%m/%d')
-    try:
-     datasets[dataset_name]
-    except:
-     datasets[dataset_name] = {}
-     datasets[dataset_name]['variables'] = {}
-     datasets[dataset_name]['timestep'] = []
-     datasets[dataset_name]['itime'] = dataset_itime
-     datasets[dataset_name]['ftime'] = dataset_ftime
-     datasets[dataset_name]['group'] = group_name
-     for tstep in dataset_timestep:
-      if tstep == 'D':
-       datasets[dataset_name]['timestep'].append('DAILY')
-      if tstep == 'M':
-       datasets[dataset_name]['timestep'].append('MONTHLY')
-      if tstep == 'Y':
-       datasets[dataset_name]['timestep'].append('YEARLY')
-    #Add the variable information 
-    datasets[dataset_name]['variables'][variable_name] = {}
-    datasets[dataset_name]['variables'][variable_name]['units'] = variable_units
-    datasets[dataset_name]['variables'][variable_name]['mask'] = variable_mask
- return (dims,datasets)
- 
 #1. Determine the dimensions
-(dims,datasets) = Read_and_Process_Main_Info()
+(dims,datasets) = cl.Read_and_Process_Main_Info()
 dt = datetime.timedelta(days=1)
 date = datetime.datetime.today()
 
 #Always redownload and reprocess the last 30 days
-idate = datetime.datetime(date.year,date.month,date.day) - 32*dt
-fdate = idate + datetime.timedelta(days=30)
 idate = datetime.datetime(2013,9,12)
 fdate = datetime.datetime(2013,9,12)
 
@@ -137,6 +71,8 @@ for tstep in ['DAILY','MONTHLY','YEARLY']:
 '''
 
 #4. Update the xml file
+cl.Update_XML_File(datasets)
+'''
 xml_settings = '../web_nchaney/settings.xml'
 tree = ET.parse(xml_settings)
 for dataset in datasets:
@@ -147,3 +83,4 @@ for dataset in datasets:
   Update_XML(tree,variable,dataset,itime,ftime)
 #Write the new xml file
 tree.write('settings.xml')
+'''
