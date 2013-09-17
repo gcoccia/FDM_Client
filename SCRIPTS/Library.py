@@ -149,8 +149,12 @@ def Setup_Routines(date):
  dir = "../IMAGES"
  Check_and_Make_Directory(dir)
 
- #Setup the control file directory
+ #Setup miscellanous directories
  dir = "../DATA_GRID/CTL"
+ Check_and_Make_Directory(dir)
+ dir = "../DATA_GRID/MASKS"
+ Check_and_Make_Directory(dir)
+ dir = "../IMAGES/COLORBARS"
  Check_and_Make_Directory(dir)
 
  #Setup the yearly directory

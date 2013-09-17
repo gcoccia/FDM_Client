@@ -1,11 +1,13 @@
 <document>
 
+X is varying   Lon = -18.875 to 24.875   X = 1 to 176
+Y is varying   Lat = 2.125 to 27.875   Y = 149 to 252
 <dimensions>
   <res>0.25</res>
-  <minlat>-34.875</minlat>
+  <minlat>2.125</minlat>
   <minlon>-18.875</minlon>
-  <nlat>292</nlat>
-  <nlon>296</nlon>
+  <nlat>104</nlat>
+  <nlon>176</nlon>
 </dimensions>
 
 <variables>
@@ -17,15 +19,15 @@
     </datatype>
     <datatype mask="mask" name="tmax" title="Maximum Temperature (C)" units="K">
       <dataset ftime="2008/01/01" itime="1948/01/01" name="PGF" ts="DMY" />
-      <dataset ftime="2013/08/26" itime="2008/01/01" name="GFS_ANALYSIS_BC" ts="D" />
+      <dataset ftime="2013/09/12" itime="2008/01/01" name="GFS_ANALYSIS_BC" ts="D" />
     </datatype>
     <datatype mask="mask" name="tmin" title="Minimum Temperature (C)" units="K">
       <dataset ftime="2008/01/01" itime="1948/01/01" name="PGF" ts="DMY" />
-      <dataset ftime="2013/08/26" itime="2008/01/01" name="GFS_ANALYSIS_BC" ts="D" />
+      <dataset ftime="2013/09/12" itime="2008/01/01" name="GFS_ANALYSIS_BC" ts="D" />
     </datatype>
     <datatype mask="mask" name="wind" title="Wind (m/s)" units="m/s">
       <dataset ftime="2008/01/01" itime="1948/01/01" name="PGF" ts="DMY" />
-      <dataset ftime="2013/08/26" itime="2008/01/01" name="GFS_ANALYSIS_BC" ts="D" />
+      <dataset ftime="2013/09/12" itime="2008/01/01" name="GFS_ANALYSIS_BC" ts="D" />
     </datatype>
     <infobox>1</infobox>
   </group>
@@ -73,7 +75,7 @@
       <dataset ftime="2008/01/01" itime="1950/01/01" name="VIC_DERIVED" ts="DMY" />
     </datatype>
     <datatype mask="mask200" name="pct30day" title="NDVI Percentile (30-day moving average)" units="%">
-      <dataset ftime="2013/09/12" itime="2003/01/01" name="MOD09_NDVI_MA_PCT" ts="D" />
+      <dataset ftime="2003/05/09" itime="2003/01/01" name="MOD09_NDVI_MA_PCT" ts="D" />
     </datatype>
     <datatype mask="maskSO" name="flw_pct" title="Streamflow Percentile (%)" units="%">
       <dataset ftime="2008/01/01" itime="1950/01/01" name="ROUTING_VIC_DERIVED" ts="DMY" />
@@ -100,7 +102,7 @@
 
    <group divtitle="Vegetation" name="Vegetation">
     <datatype mask="mask" name="ndvi30" title="NDVI (30-day moving average)" units="">
-     <dataset ftime="2013/08/26" itime="2003/01/01" name="MOD09_NDVI_MA" ts="D" />
+     <dataset ftime="2013/09/12" itime="2003/01/01" name="MOD09_NDVI_MA" ts="D" />
     </datatype>
     <infobox>5</infobox>
    </group>

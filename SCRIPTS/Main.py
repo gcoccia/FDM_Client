@@ -20,10 +20,7 @@ date = datetime.datetime.today()
 
 #Always redownload and reprocess the last 30 days
 idate = datetime.datetime(1950,1,1)
-fdate = datetime.datetime(2013,9,12)
-
-#Prepare the mask
-cl.Create_Mask(dims)
+fdate = datetime.datetime(1950,1,31)
 
 #Determine the new dataset boundaries
 for dataset in datasets:
@@ -38,6 +35,10 @@ while date <= fdate:
 
  #Setup routines
  cl.Setup_Routines(date)
+
+ if date == idate:
+  #Prepare the mask
+  cl.Create_Mask(dims)
 
  #For each availabe data set:
  for dataset in datasets:
