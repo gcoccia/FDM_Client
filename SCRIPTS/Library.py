@@ -299,6 +299,9 @@ def Download_and_Process(date,dims,tstep,dataset,info,Reprocess_Flag):
 
  fdate = info['ftime']
  idate = info['itime']
+ #If we are not within the bounds then exit
+ if date < idate or date > fdate:
+  return info
 
  #If monthly time step only extract at end of month
  if tstep == "MONTHLY" and (date + datetime.timedelta(days=1)).month == date.month and info['group'] != 'Forecast':
@@ -308,39 +311,7 @@ def Download_and_Process(date,dims,tstep,dataset,info,Reprocess_Flag):
  if tstep == "YEARLY" and (date + datetime.timedelta(days=1)).year == date.year:
   return info
 
- print_info_to_command_line('Dataset: %s Timestep: %s (Downloading and Processing data)' % (dataset,tstep))
-
- #Define the grads server root
- http_file = "http://stream.princeton.edu:9090/dods/AFRICAN_WATER_CYCLE_MONITOR/%s/%s" % (dataset,tstep)
-
- #Open access to grads data server
- ga("sdfopen %s" % http_file)
-
- #Extract basic info
- qh = ga.query("file")
- vars = qh.vars
- vars_info = qh.var_titles
-
- #Determine the last date
- ga("set t last")
- fdate = gradstime2datetime(ga.exp(vars[0]).grid.time[0])
- ga("set t 1")
- idate = gradstime2datetime(ga.exp(vars[0]).grid.time[0])
- if info['group'] == 'Forecast' and tstep == 'MONTHLY':
-  fdate = fdate - 5*relativedelta.relativedelta(months=1)
- if info['group'] == 'Forecast' and tstep == 'DAILY':
-  fdate = fdate - 6*relativedelta.relativedelta(days=1)
- info['ftime'] = fdate
- info['itime'] = idate
-
- #If we are not within the bounds then exit
- if date < idate or date > fdate:
-  ga("close 1")
-  return info
-
- #Determine the ensemble number
- (nt,iensemble) = Find_Ensemble_Number(info['group'],tstep,idate,date)#12*(date.year - idate.year) + max(date.month - idate.month,0) + 1
-
+ '''
  if info['group'] != 'Forecast':
   #Create/Update the control file
   file = '../DATA_GRID/CTL/%s_%s.ctl' % (dataset,tstep)
@@ -360,10 +331,7 @@ def Download_and_Process(date,dims,tstep,dataset,info,Reprocess_Flag):
   if tstep == "YEARLY":
    fp.write('tdef t %d linear %s %s\n' % (nt,datetime2gradstime(idate),'1yr'))
   fp.close()
- 
- #Set grads region
- ga("set lat %f %f" % (dims['minlat'],dims['maxlat']))
- ga("set lon %f %f" % (dims['minlon'],dims['maxlon']))
+ '''
 
  #Define new filename
  if tstep == "DAILY":
@@ -383,8 +351,27 @@ def Download_and_Process(date,dims,tstep,dataset,info,Reprocess_Flag):
 
   #If file exists, exit
  if os.path.exists(file) == True and Reprocess_Flag == False:
-  ga("close 1")
   return info
+
+ print_info_to_command_line('Dataset: %s Timestep: %s (Downloading and Processing data)' % (dataset,tstep))
+
+ #Define the grads server root
+ http_file = "http://stream.princeton.edu:9090/dods/AFRICAN_WATER_CYCLE_MONITOR/%s/%s" % (dataset,tstep)
+
+ #Open access to grads data server
+ ga("sdfopen %s" % http_file)
+
+ #Extract basic info
+ qh = ga.query("file")
+ vars = qh.vars
+ vars_info = qh.var_titles
+
+ #Determine the ensemble number
+ (nt,iensemble) = Find_Ensemble_Number(info['group'],tstep,idate,date)#12*(date.year - idate.year) + max(date.month - idate.month,0) + 1
+ 
+ #Set grads region
+ ga("set lat %f %f" % (dims['minlat'],dims['maxlat']))
+ ga("set lon %f %f" % (dims['minlon'],dims['maxlon']))
 
  fp = Create_NETCDF_File(dims,file,vars,vars_info,date,nc_tstep,nt)
  data = []

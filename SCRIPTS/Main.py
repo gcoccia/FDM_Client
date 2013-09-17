@@ -19,7 +19,7 @@ dt = datetime.timedelta(days=1)
 date = datetime.datetime.today()
 
 #Always redownload and reprocess the last 30 days
-idate = datetime.datetime(2013,9,12)
+idate = datetime.datetime(1950,1,1)
 fdate = datetime.datetime(2013,9,12)
 
 #Prepare the mask
