@@ -25,6 +25,11 @@ fdate = datetime.datetime(2013,9,12)
 #Prepare the mask
 cl.Create_Mask(dims)
 
+#Determine the new dataset boundaries
+for dataset in datasets:
+ for tstep in datasets[dataset]['timestep']:
+  datasets[dataset] = cl.Determine_Dataset_Boundaries(dataset,tstep,datasets[dataset])
+
 #Download all the requested data
 date = idate
 while date <= fdate:
@@ -57,7 +62,7 @@ while date <= fdate:
 
    #Create Images
    print dataset
-   #cl.Create_Images(date,dims,dataset,tstep,datasets[dataset],True)
+   cl.Create_Images(date,dims,dataset,tstep,datasets[dataset],False)
  
  date = date + dt
 
@@ -72,15 +77,3 @@ for tstep in ['DAILY','MONTHLY','YEARLY']:
 
 #4. Update the xml file
 cl.Update_XML_File(datasets)
-'''
-xml_settings = '../web_nchaney/settings.xml'
-tree = ET.parse(xml_settings)
-for dataset in datasets:
- itime = datasets[dataset]['itime']
- ftime = datasets[dataset]['ftime']
- for variable in datasets[dataset]['variables']:
-  print dataset,variable
-  Update_XML(tree,variable,dataset,itime,ftime)
-#Write the new xml file
-tree.write('settings.xml')
-'''

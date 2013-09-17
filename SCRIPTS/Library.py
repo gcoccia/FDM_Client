@@ -13,6 +13,38 @@ import xml.etree.ElementTree as ET
 grads_exe = '../LIBRARIES/grads-2.0.1.oga.1/Contents/grads'
 ga = grads.GrADS(Bin=grads_exe,Window=False,Echo=False)
 
+def Determine_Dataset_Boundaries(dataset,tstep,info):
+
+ print_info_to_command_line('Updating the time information for %s/%s' % (dataset,tstep))
+
+ #Define the grads server root
+ http_file = "http://stream.princeton.edu:9090/dods/AFRICAN_WATER_CYCLE_MONITOR/%s/%s" % (dataset,tstep)
+
+ #Open access to grads data ser
+ ga("sdfopen %s" % http_file)
+
+ #Extract basic info
+ qh = ga.query("file")
+ vars = qh.vars
+ vars_info = qh.var_titles
+
+ #Determine the last date
+ ga("set t last")
+ fdate = gradstime2datetime(ga.exp(vars[0]).grid.time[0])
+ ga("set t 1")
+ idate = gradstime2datetime(ga.exp(vars[0]).grid.time[0])
+ if info['group'] == 'Forecast' and tstep == 'MONTHLY':
+  fdate = fdate - 5*relativedelta.relativedelta(months=1)
+ if info['group'] == 'Forecast' and tstep == 'DAILY':
+  fdate = fdate - 6*relativedelta.relativedelta(days=1)
+ info['ftime'] = fdate
+ info['itime'] = idate
+
+ #Close grads file
+ ga("close 1")
+
+ return info
+
 def Read_and_Process_Main_Info():
 
  tree = ET.parse('../settings.xml')
@@ -264,6 +296,9 @@ def Find_Ensemble_Number(group,timestep,idate,date):
  return (nt,iensemble)
 
 def Download_and_Process(date,dims,tstep,dataset,info,Reprocess_Flag):
+
+ fdate = info['ftime']
+ idate = info['itime']
 
  #If monthly time step only extract at end of month
  if tstep == "MONTHLY" and (date + datetime.timedelta(days=1)).month == date.month and info['group'] != 'Forecast':

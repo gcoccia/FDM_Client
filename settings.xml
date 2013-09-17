@@ -12,20 +12,20 @@
 
   <group divtitle="Forcing" name="Meteorology">
     <datatype mask="mask" name="prec" title="Precipitation (mm)" units="mm/day">
-      <dataset ftime="2013/09/12" itime="2000/03/01" name="3B42RT_BC" ts="DMY" />
+      <dataset ftime="2013/08/21" itime="2000/03/01" name="3B42RT_BC" ts="DM" />
       <dataset ftime="2008/12/31" itime="1948/01/01" name="PGF" ts="DMY" />
     </datatype>
     <datatype mask="mask" name="tmax" title="Maximum Temperature (C)" units="K">
       <dataset ftime="2008/12/31" itime="1948/01/01" name="PGF" ts="DMY" />
-      
+      <dataset ftime="2013/08/21" itime="2008/01/01" name="GFS_ANALYSIS_BC" ts="D" />
     </datatype>
     <datatype mask="mask" name="tmin" title="Minimum Temperature (C)" units="K">
       <dataset ftime="2008/12/31" itime="1948/01/01" name="PGF" ts="DMY" />
-      
+      <dataset ftime="2013/08/21" itime="2008/01/01" name="GFS_ANALYSIS_BC" ts="D" />
     </datatype>
     <datatype mask="mask" name="wind" title="Wind (m/s)" units="m/s">
       <dataset ftime="2008/12/31" itime="1948/01/01" name="PGF" ts="DMY" />
-      
+      <dataset ftime="2013/08/21" itime="2008/01/01" name="GFS_ANALYSIS_BC" ts="D" />
     </datatype>
     <infobox>1</infobox>
   </group>
@@ -38,19 +38,19 @@
     </datatype>
     <datatype mask="mask" name="evap" title="Evaporation (mm/day)" units="mm">
       <dataset ftime="2008/12/31" itime="1948/01/01" name="VIC_PGF" ts="DMY" />
-      <dataset ftime="2013/09/12" itime="2003/01/01" name="VIC_3B42RT" ts="DMY" />
+      <dataset ftime="2013/09/12" itime="2003/01/01" name="VIC_3B42RT" ts="D" />
     </datatype>
     <datatype mask="mask" name="runoff" title="Surface Runoff (mm/day)" units="mm">
       <dataset ftime="2008/12/31" itime="1948/01/01" name="VIC_PGF" ts="DMY" />
-      <dataset ftime="2013/09/12" itime="2003/01/01" name="VIC_3B42RT" ts="DMY" />
+      <dataset ftime="2013/09/12" itime="2003/01/01" name="VIC_3B42RT" ts="D" />
     </datatype>
     <datatype mask="mask" name="baseflow" title="Baseflow (mm/day)" units="mm">
       <dataset ftime="2008/12/31" itime="1948/01/01" name="VIC_PGF" ts="DMY" />
-      <dataset ftime="2013/09/12" itime="2003/01/01" name="VIC_3B42RT" ts="DMY" />
+      <dataset ftime="2013/09/12" itime="2003/01/01" name="VIC_3B42RT" ts="D" />
     </datatype>
     <datatype mask="maskSO" name="flw" title="Streamflow (m^3/s)" units="m^3/s">
       <dataset ftime="2008/12/31" itime="1948/01/01" name="ROUTING_VIC_PGF" ts="DMY" />
-      <dataset ftime="2013/09/12" itime="2003/01/01" name="ROUTING_VIC_3B42RT" ts="DMY" />
+      <dataset ftime="2013/09/12" itime="2003/01/01" name="ROUTING_VIC_3B42RT" ts="D" />
     </datatype>
 
     <infobox>2</infobox>
@@ -73,7 +73,7 @@
       <dataset ftime="2013/09/12" itime="1950/01/01" name="VIC_DERIVED" ts="DMY" />
     </datatype>
     <datatype mask="mask200" name="pct30day" title="NDVI Percentile (30-day moving average)" units="%">
-      <dataset ftime="2013/09/12" itime="2003/01/01" name="MOD09_NDVI_MA_PCT" ts="DMY" />
+      <dataset ftime="2013/09/12" itime="2003/01/01" name="MOD09_NDVI_MA_PCT" ts="D" />
     </datatype>
     <datatype mask="maskSO" name="flw_pct" title="Streamflow Percentile (%)" units="%">
       <dataset ftime="2013/09/12" itime="1950/01/01" name="ROUTING_VIC_DERIVED" ts="DMY" />
@@ -85,22 +85,22 @@
   <group divtitle="Fluxes" name="Surface Fluxes">
     <datatype mask="mask" name="r_net" title="Net Radiation (W/m^2)" units="W/m^2">
      <dataset ftime="2008/12/31" itime="1948/01/01" name="VIC_PGF" ts="DMY" />
-     <dataset ftime="2013/09/12" itime="2003/01/01" name="VIC_3B42RT" ts="DMY" />
+     <dataset ftime="2013/09/12" itime="2003/01/01" name="VIC_3B42RT" ts="D" />
     </datatype>
     <datatype mask="mask" name="net_long" title="Net Longwave Radiation (W/m^2)" units="W/m^2">
      <dataset ftime="2008/12/31" itime="1948/01/01" name="VIC_PGF" ts="DMY" />
-     <dataset ftime="2013/09/12" itime="2003/01/01" name="VIC_3B42RT" ts="DMY" />
+     <dataset ftime="2013/09/12" itime="2003/01/01" name="VIC_3B42RT" ts="D" />
     </datatype>
     <datatype mask="mask" name="net_short" title="Net Shortwave Radiation (W/m^2)" units="W/m^2">
      <dataset ftime="2008/12/31" itime="1948/01/01" name="VIC_PGF" ts="DMY" />
-     <dataset ftime="2013/09/12" itime="2003/01/01" name="VIC_3B42RT" ts="DMY" />
+     <dataset ftime="2013/09/12" itime="2003/01/01" name="VIC_3B42RT" ts="D" />
     </datatype>
     <infobox>4</infobox>
    </group>
 
    <group divtitle="Vegetation" name="Vegetation">
     <datatype mask="mask" name="ndvi30" title="NDVI (30-day moving average)" units="">
-     <dataset ftime="2013/09/12" itime="2003/01/01" name="MOD09_NDVI_MA" ts="DMY" />
+     <dataset ftime="2013/08/21" itime="2003/01/01" name="MOD09_NDVI_MA" ts="D" />
     </datatype>
     <infobox>5</infobox>
    </group>
