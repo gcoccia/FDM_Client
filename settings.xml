@@ -66,7 +66,7 @@
     <datatype mask="mask200" name="spi6" title="SPI (6 month)" units="">
       <dataset ftime="2013/09/12" itime="1950/01/01" name="SPI" ts="DMY" />
     </datatype>
-    <datatype mask="mask200" name="spi12" title="SPI (9 month)" units="">
+    <datatype mask="mask200" name="spi12" title="SPI (12 month)" units="">
       <dataset ftime="2013/09/12" itime="1950/01/01" name="SPI" ts="DMY" />
     </datatype>
     <datatype mask="mask200" name="vcpct" title="Drought Index (%)" units="%">
@@ -133,7 +133,7 @@
      <dataset ftime="2013/09/01" itime="2013/01/01" name="MultiModel" ts="M" />
      <dataset ftime="2013/09/13" itime="2013/01/01" name="GFS_7DAY_FORECAST" ts="D" />
     </datatype>
-    <datatype mask="mask200" name="spi12" title="SPI (9 month)" units="">
+    <datatype mask="mask200" name="spi12" title="SPI (12 month)" units="">
      <dataset ftime="2013/09/01" itime="2013/01/01" name="CMC1-CanCM3" ts="M" />
      <dataset ftime="2013/09/01" itime="2013/01/01" name="GFDL-CM2p1-aer04" ts="M" />
      <dataset ftime="2013/09/01" itime="2013/01/01" name="COLA-RSMAS-CCSM3" ts="M" />
