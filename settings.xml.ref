@@ -6,6 +6,9 @@
   <minlon>-18.875</minlon>
   <nlat>292</nlat>
   <nlon>296</nlon>
+  <izoom>3</izoom>
+  <centerlat>15.0</centerlat>
+  <centerlon>8.5</centerlon>
 </dimensions>
 
 <variables>
