@@ -22,10 +22,13 @@ date = datetime.datetime.today()
 idate = datetime.datetime(1950,1,1)
 fdate = datetime.datetime(1950,1,31)
 
+#Prepare the mask
+cl.Create_Mask(dims,True)
+
 #Determine the new dataset boundaries
-for dataset in datasets:
- for tstep in datasets[dataset]['timestep']:
-  datasets[dataset] = cl.Determine_Dataset_Boundaries(dataset,tstep,datasets[dataset])
+#for dataset in datasets:
+# for tstep in datasets[dataset]['timestep']:
+#  datasets[dataset] = cl.Determine_Dataset_Boundaries(dataset,tstep,datasets[dataset])
 
 #Download all the requested data
 date = idate
@@ -35,10 +38,6 @@ while date <= fdate:
 
  #Setup routines
  cl.Setup_Routines(date)
-
- if date == idate:
-  #Prepare the mask
-  cl.Create_Mask(dims)
 
  #For each availabe data set:
  for dataset in datasets:
@@ -63,7 +62,7 @@ while date <= fdate:
 
    #Create Images
    print dataset
-   cl.Create_Images(date,dims,dataset,tstep,datasets[dataset],False)
+   cl.Create_Images(date,dims,dataset,tstep,datasets[dataset],True)
  
  date = date + dt
 

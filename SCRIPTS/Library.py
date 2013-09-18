@@ -244,22 +244,24 @@ def Create_NETCDF_File(dims,file,vars,vars_info,tinitial,tstep,nt):
 
  return f
 
-def Create_Mask(dims):
+def Create_Mask(dims,Reprocess_Flag):
 
  #Define file
  file = '../DATA_GRID/MASKS/mask.nc' 
- if os.path.exists(file):
+ if os.path.exists(file) and Reprocess_Flag == False:
   return
 
  #Define http files
  http_file1 = 'http://stream.princeton.edu:9090/dods/AFRICAN_WATER_CYCLE_MONITOR/MASK'
  http_file2 = 'http://stream.princeton.edu:9090/dods/AFRICAN_WATER_CYCLE_MONITOR/MASK_200mm'
- http_file3 = 'http://stream.princeton.edu:9090/dods/AFRICAN_WATER_CYCLE_MONITOR/MASK_SO'
+ http_file3 = 'http://stream.princeton.edu:9090/dods/AFRICAN_WATER_CYCLE_MONITOR/MASK_Stream'
+ http_file4 = 'http://stream.princeton.edu:9090/dods/AFRICAN_WATER_CYCLE_MONITOR/MASK_100mm'
 
  #Open file
  ga("sdfopen %s" % http_file1)
  ga("sdfopen %s" % http_file2)
  ga("sdfopen %s" % http_file3)
+ ga("sdfopen %s" % http_file4)
   
  #Set grads region
  ga("set lat %f %f" % (dims['minlat'],dims['maxlat']))
@@ -268,15 +270,18 @@ def Create_Mask(dims):
  #Regrid data
  Grads_Regrid('mask.1','mask1',dims)
  Grads_Regrid('mask.2','mask2',dims)
- Grads_Regrid('mask.3','mask3',dims)
+ Grads_Regrid('const(maskso.3(t=1),1)','mask3',dims)
+ Grads_Regrid('mask.4','mask4',dims)
 
  #Write to file
- fp = Create_NETCDF_File(dims,file,['mask','mask200','maskSO'],['mask','mask200','maskSO'],datetime.datetime(1900,1,1),'days',1)
+ fp = Create_NETCDF_File(dims,file,['mask','mask200','maskSO','mask100'],['mask','mask200','maskSO','mask100'],datetime.datetime(1900,1,1),'days',1)
  fp.variables['mask'][0] = np.ma.getdata(ga.exp("mask1"))
  fp.variables['mask200'][0] = np.ma.getdata(ga.exp("mask2"))
  fp.variables['maskSO'][0] = np.ma.getdata(ga.exp("mask3"))
+ fp.variables['mask100'][0] = np.ma.getdata(ga.exp("mask4"))
 
  #Close files 
+ ga("close 4")
  ga("close 3")
  ga("close 2")
  ga("close 1")
@@ -567,9 +572,16 @@ def Define_Colormap(var,timestep):
   cmap = plt.cm.jet_r
   norm = mpl.colors.Normalize(vmin=np.min(levels),vmax=np.max(levels), clip=False)
 
+ #NDVI and drought index
  if var in ["vcpct","pct30day","flw_pct"]:
   levels = [1,5,10,20,30,70,80,90,95,99]
   cmap = plt.cm.RdYlGn
+  norm = mpl.colors.BoundaryNorm(levels,ncolors=256, clip=False)
+
+ #Streamflow percentiles
+ if var in ["flw_pct"]:
+  levels = [1,5,10,20,30,70,80,90,95,99]
+  cmap = plt.cm.jet_r
   norm = mpl.colors.BoundaryNorm(levels,ncolors=256, clip=False)
 
  #Streamflow
