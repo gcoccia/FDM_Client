@@ -12,6 +12,7 @@ import datetime
 import numpy as np
 import xml.etree.ElementTree as ET
 import datetime
+import time
 
 #1. Determine the dimensions
 (dims,datasets) = cl.Read_and_Process_Main_Info()
@@ -19,16 +20,16 @@ dt = datetime.timedelta(days=1)
 date = datetime.datetime.today()
 
 #Always redownload and reprocess the last 30 days
-idate = datetime.datetime(1950,1,1)
-fdate = datetime.datetime(1950,1,31)
+idate = datetime.datetime(2013,1,1)
+fdate = datetime.datetime(2013,1,1)
 
 #Prepare the mask
 cl.Create_Mask(dims,True)
 
 #Determine the new dataset boundaries
-#for dataset in datasets:
-# for tstep in datasets[dataset]['timestep']:
-#  datasets[dataset] = cl.Determine_Dataset_Boundaries(dataset,tstep,datasets[dataset])
+for dataset in datasets:
+ for tstep in datasets[dataset]['timestep']:
+  datasets[dataset] = cl.Determine_Dataset_Boundaries(dataset,tstep,datasets[dataset])
 
 #Download all the requested data
 date = idate
@@ -61,8 +62,7 @@ while date <= fdate:
   for tstep in datasets[dataset]['timestep']:
 
    #Create Images
-   print dataset
-   cl.Create_Images(date,dims,dataset,tstep,datasets[dataset],True)
+   cl.Create_Images(date,dims,dataset,tstep,datasets[dataset],False)
  
  date = date + dt
 

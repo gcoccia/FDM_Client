@@ -35,10 +35,13 @@ def Determine_Dataset_Boundaries(dataset,tstep,info):
  idate = gradstime2datetime(ga.exp(vars[0]).grid.time[0])
  if info['group'] == 'Forecast' and tstep == 'MONTHLY':
   fdate = fdate - 5*relativedelta.relativedelta(months=1)
+  idate = fdate
  if info['group'] == 'Forecast' and tstep == 'DAILY':
   fdate = fdate - 6*relativedelta.relativedelta(days=1)
- info['ftime'] = fdate
- info['itime'] = idate
+  idate = fdate
+ info['timestep'][tstep] = {}
+ info['timestep'][tstep]['fdate'] = fdate
+ info['timestep'][tstep]['idate'] = idate
 
  #Close grads file
  ga("close 1")
@@ -72,24 +75,24 @@ def Read_and_Process_Main_Info():
    for dataset in variable.findall('dataset'):
     dataset_name = dataset.attrib['name']
     dataset_timestep = dataset.attrib['ts']
-    dataset_itime = datetime.datetime.strptime(dataset.attrib['itime'],'%Y/%m/%d')
-    dataset_ftime = datetime.datetime.strptime(dataset.attrib['ftime'],'%Y/%m/%d')
+    #dataset_itime = datetime.datetime.strptime(dataset.attrib['itime'],'%Y/%m/%d')
+    #dataset_ftime = datetime.datetime.strptime(dataset.attrib['ftime'],'%Y/%m/%d')
     try:
      datasets[dataset_name]
     except:
      datasets[dataset_name] = {}
      datasets[dataset_name]['variables'] = {}
-     datasets[dataset_name]['timestep'] = []
-     datasets[dataset_name]['itime'] = dataset_itime
-     datasets[dataset_name]['ftime'] = dataset_ftime
+     datasets[dataset_name]['timestep'] = {}
+     #datasets[dataset_name]['itime'] = dataset_itime
+     #datasets[dataset_name]['ftime'] = dataset_ftime
      datasets[dataset_name]['group'] = group_name
      for tstep in dataset_timestep:
       if tstep == 'D':
-       datasets[dataset_name]['timestep'].append('DAILY')
+       datasets[dataset_name]['timestep']['DAILY'] = {}
       if tstep == 'M':
-       datasets[dataset_name]['timestep'].append('MONTHLY')
+       datasets[dataset_name]['timestep']['MONTHLY'] = {}
       if tstep == 'Y':
-       datasets[dataset_name]['timestep'].append('YEARLY')
+       datasets[dataset_name]['timestep']['YEARLY'] = {}
     #Add the variable information 
     datasets[dataset_name]['variables'][variable_name] = {}
     datasets[dataset_name]['variables'][variable_name]['units'] = variable_units
@@ -101,8 +104,14 @@ def Update_XML_File(datasets):
  xml_settings = '../settings.xml'
  tree = ET.parse(xml_settings)
  for dataset in datasets:
-  itime = datasets[dataset]['itime']
-  ftime = datasets[dataset]['ftime']
+  if 'DAILY' in datasets[dataset]['timestep']:
+   tstep = 'DAILY'
+  elif 'MONTHLY' in datasets[dataset]['timestep']:
+   tstep = 'MONTHLY'
+  elif 'YEARLY' in datasets[dataset]['timestep']:
+   tstep = 'YEARLY'
+  itime = datasets[dataset]['timestep'][tstep]['idate']
+  ftime = datasets[dataset]['timestep'][tstep]['fdate']
   for variable in datasets[dataset]['variables']:
    tree = Update_XML_Contents(tree,variable,dataset,itime,ftime)
  #Write the new xml file
@@ -306,8 +315,8 @@ def Find_Ensemble_Number(group,timestep,idate,date):
 
 def Download_and_Process(date,dims,tstep,dataset,info,Reprocess_Flag):
 
- fdate = info['ftime']
- idate = info['itime']
+ fdate = info['timestep'][tstep]['fdate']
+ idate = info['timestep'][tstep]['idate']
  #If we are not within the bounds then exit
  if date < idate or date > fdate:
   return info
@@ -423,8 +432,8 @@ def datetime2outputtime(date,timestep):
 def Create_Images(date,dims,dataset,timestep,info,Reprocess_Flag):
 
  variables = info['variables']
- idate = info['itime']
- fdate = info['ftime']
+ idate = info['timestep'][timestep]['idate']
+ fdate = info['timestep'][timestep]['fdate']
  if date < idate or date > fdate:
   return
 
@@ -470,7 +479,6 @@ def Create_Images(date,dims,dataset,timestep,info,Reprocess_Flag):
   #Set time step
   date_tmp = date + t*dt#relativedelta.relativedelta(dt[timestep] = 1)
   (dir_output,date_output) = datetime2outputtime(date_tmp,timestep)
-  print date_tmp
   ga("set time %s" % datetime2gradstime(date_tmp))
   #Create image and colorbars for all variables  
   for var in variables:#qh.vars:
@@ -488,7 +496,7 @@ def Create_Images(date,dims,dataset,timestep,info,Reprocess_Flag):
     cflag = False
    Create_Image(image_file,data,cmap,levels,norm,cflag)
    colormap_file = '../IMAGES/COLORBARS/%s--%s_%s.png' % (dataset,var,timestep)
-   Create_Colorbar(colormap_file,cmap,norm,var,levels)
+   Create_Colorbar(colormap_file,cmap,norm,var,levels,False)
 
  #Close access to file
  ga("close 2")
@@ -496,10 +504,10 @@ def Create_Images(date,dims,dataset,timestep,info,Reprocess_Flag):
 
  return
 
-def Create_Colorbar(file,cmap,norm,var,levels):
+def Create_Colorbar(file,cmap,norm,var,levels,Reprocess_Flag):
  
- #if os.path.exists(file):
- # return
+ if os.path.exists(file) and Reprocess_Flag == False:
+  return
  #fig = plt.figure(figsize=(8,0.5))
  #ax = fig.add_axes([0.2,0.5,0.8,0.8]) 
  if var in ["prec"]:
@@ -617,7 +625,6 @@ def Define_Colormap(var,timestep):
 def Create_Image(file,data,cmap,levels,norm,cflag):
 
  #Extract grid info
- undef = -9.99e+08
  lats = data.grid.lat
  lons = data.grid.lon
 
