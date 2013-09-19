@@ -20,8 +20,8 @@ dt = datetime.timedelta(days=1)
 date = datetime.datetime.today()
 
 #Always redownload and reprocess the last 30 days
-idate = datetime.datetime(2013,1,1)
-fdate = datetime.datetime(2013,1,1)
+idate = datetime.datetime(2013,9,16)
+fdate = datetime.datetime(2013,9,16) + datetime.timedelta(days=1)
 
 #Prepare the mask
 cl.Create_Mask(dims,True)
@@ -62,7 +62,7 @@ while date <= fdate:
   for tstep in datasets[dataset]['timestep']:
 
    #Create Images
-   cl.Create_Images(date,dims,dataset,tstep,datasets[dataset],False)
+   cl.Create_Images(date,dims,dataset,tstep,datasets[dataset],True)
  
  date = date + dt
 

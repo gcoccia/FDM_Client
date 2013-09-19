@@ -301,6 +301,8 @@ def Create_Mask(dims,Reprocess_Flag):
 def Find_Ensemble_Number(group,timestep,idate,date):
 
  if group == 'Forecast':
+  ga("set t 1")
+  idate = gradstime2datetime(ga.exp('prec').grid.time[0])
   if timestep == 'MONTHLY':
    iensemble = 12*(date.year - idate.year) + max(date.month - idate.month,0) + 1  
    nt = 6
@@ -318,16 +320,24 @@ def Download_and_Process(date,dims,tstep,dataset,info,Reprocess_Flag):
  fdate = info['timestep'][tstep]['fdate']
  idate = info['timestep'][tstep]['idate']
  #If we are not within the bounds then exit
+ if tstep == "MONTHLY":
+  idate = datetime.datetime(idate.year,idate.month,1)
+  fdate = datetime.datetime(fdate.year,fdate.month,1)
+  date = datetime.datetime(date.year,date.month,1)
+ if tstep == "YEARLY":
+  idate = datetime.datetime(idate.year,1,1)
+  fdate = datetime.datetime(fdate.year,1,1)
+  date = datetime.datetime(date.year,1,1)
+
  if date < idate or date > fdate:
   return info
-
  #If monthly time step only extract at end of month
- if tstep == "MONTHLY" and (date + datetime.timedelta(days=1)).month == date.month and info['group'] != 'Forecast':
-  return info
+ #if tstep == "MONTHLY" and (date + datetime.timedelta(days=1)).month == date.month and info['group'] != 'Forecast':
+ # return info
 
  #If yearly time step only extract at end of month
- if tstep == "YEARLY" and (date + datetime.timedelta(days=1)).year == date.year:
-  return info
+ #if tstep == "YEARLY" and (date + datetime.timedelta(days=1)).year == date.year:
+ # return info
 
  '''
  if info['group'] != 'Forecast':
@@ -434,20 +444,29 @@ def Create_Images(date,dims,dataset,timestep,info,Reprocess_Flag):
  variables = info['variables']
  idate = info['timestep'][timestep]['idate']
  fdate = info['timestep'][timestep]['fdate']
+ #If we are not within the bounds then exit
+ if timestep == "MONTHLY":
+  idate = datetime.datetime(idate.year,idate.month,1)
+  fdate = datetime.datetime(fdate.year,fdate.month,1)
+  date = datetime.datetime(date.year,date.month,1)
+ if timestep == "YEARLY":
+  idate = datetime.datetime(idate.year,1,1)
+  fdate = datetime.datetime(fdate.year,1,1)
+  date = datetime.datetime(date.year,1,1)
  if date < idate or date > fdate:
   return
 
  #If monthly time step only extract at end of month
- if timestep == "MONTHLY":
-  if (date + datetime.timedelta(days=1)).month == date.month:
-   return
-  date = datetime.datetime(date.year,date.month,1)
+ #if timestep == "MONTHLY":
+ # if (date + datetime.timedelta(days=1)).month == date.month:
+ #  return
+ # date = datetime.datetime(date.year,date.month,1)
 
  #If yearly time step only extract at end of month
- if timestep == "YEARLY": 
-  if (date + datetime.timedelta(days=1)).year == date.year:
-   return
-  date = datetime.datetime(date.year,1,1)
+ #if timestep == "YEARLY": 
+ # if (date + datetime.timedelta(days=1)).year == date.year:
+ #  return
+ # date = datetime.datetime(date.year,1,1)
 
  print_info_to_command_line('Dataset: %s Timestep: %s (Creating Images)' % (dataset,timestep))
  
