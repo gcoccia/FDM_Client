@@ -75,8 +75,8 @@ def Read_and_Process_Main_Info():
    for dataset in variable.findall('dataset'):
     dataset_name = dataset.attrib['name']
     dataset_timestep = dataset.attrib['ts']
-    #dataset_itime = datetime.datetime.strptime(dataset.attrib['itime'],'%Y/%m/%d')
-    #dataset_ftime = datetime.datetime.strptime(dataset.attrib['ftime'],'%Y/%m/%d')
+    dataset_itime = datetime.datetime.strptime(dataset.attrib['itime'],'%Y/%m/%d')
+    dataset_ftime = datetime.datetime.strptime(dataset.attrib['ftime'],'%Y/%m/%d')
     try:
      datasets[dataset_name]
     except:
@@ -89,10 +89,16 @@ def Read_and_Process_Main_Info():
      for tstep in dataset_timestep:
       if tstep == 'D':
        datasets[dataset_name]['timestep']['DAILY'] = {}
+       datasets[dataset_name]['timestep']['DAILY']['idate'] = dataset_itime
+       datasets[dataset_name]['timestep']['DAILY']['fdate'] = dataset_ftime
       if tstep == 'M':
        datasets[dataset_name]['timestep']['MONTHLY'] = {}
+       datasets[dataset_name]['timestep']['MONTHLY']['idate'] = dataset_itime
+       datasets[dataset_name]['timestep']['MONTHLY']['fdate'] = dataset_ftime
       if tstep == 'Y':
        datasets[dataset_name]['timestep']['YEARLY'] = {}
+       datasets[dataset_name]['timestep']['YEARLY']['idate'] = dataset_itime
+       datasets[dataset_name]['timestep']['YEARLY']['fdate'] = dataset_ftime
     #Add the variable information 
     datasets[dataset_name]['variables'][variable_name] = {}
     datasets[dataset_name]['variables'][variable_name]['units'] = variable_units
@@ -319,18 +325,19 @@ def Download_and_Process(date,dims,tstep,dataset,info,Reprocess_Flag):
 
  fdate = info['timestep'][tstep]['fdate']
  idate = info['timestep'][tstep]['idate']
+ nt = (fdate - idate).days + 1
  #If we are not within the bounds then exit
  if tstep == "MONTHLY":
   idate = datetime.datetime(idate.year,idate.month,1)
   fdate = datetime.datetime(fdate.year,fdate.month,1)
   date = datetime.datetime(date.year,date.month,1)
+  #nt = (fdate - idate).days + 1
  if tstep == "YEARLY":
   idate = datetime.datetime(idate.year,1,1)
   fdate = datetime.datetime(fdate.year,1,1)
   date = datetime.datetime(date.year,1,1)
+  #nt = (fdate - idate).days + 1
 
- if date < idate or date > fdate:
-  return info
  #If monthly time step only extract at end of month
  #if tstep == "MONTHLY" and (date + datetime.timedelta(days=1)).month == date.month and info['group'] != 'Forecast':
  # return info
@@ -339,8 +346,17 @@ def Download_and_Process(date,dims,tstep,dataset,info,Reprocess_Flag):
  #if tstep == "YEARLY" and (date + datetime.timedelta(days=1)).year == date.year:
  # return info
 
- '''
  if info['group'] != 'Forecast':
+  #Download initial time step if not available
+  if tstep == "DAILY":
+   file = '../DATA_GRID/%04d/%02d/%02d/%s_%04d%02d%02d_daily.nc' % (idate.year,idate.month,idate.day,dataset,idate.year,idate.month,idate.day)
+  if tstep == "MONTHLY":
+   file = '../DATA_GRID/%04d/%02d/%s_%04d%02d_monthly.nc' % (idate.year,idate.month,dataset,idate.year,idate.month)
+  if tstep == "YEARLY":
+   file = '../DATA_GRID/%04d/%s_%04d_yearly.nc' % (idate.year,dataset,idate.year)
+  if os.path.exists(file) == False and date != idate:
+   Setup_Routines(idate)
+   Download_and_Process(idate,dims,tstep,dataset,info,Reprocess_Flag)
   #Create/Update the control file
   file = '../DATA_GRID/CTL/%s_%s.ctl' % (dataset,tstep)
   fp = open(file,'w')
@@ -359,7 +375,9 @@ def Download_and_Process(date,dims,tstep,dataset,info,Reprocess_Flag):
   if tstep == "YEARLY":
    fp.write('tdef t %d linear %s %s\n' % (nt,datetime2gradstime(idate),'1yr'))
   fp.close()
- '''
+
+ if date < idate or date > fdate:
+  return info
 
  #Define new filename
  if tstep == "DAILY":
@@ -444,6 +462,7 @@ def Create_Images(date,dims,dataset,timestep,info,Reprocess_Flag):
  variables = info['variables']
  idate = info['timestep'][timestep]['idate']
  fdate = info['timestep'][timestep]['fdate']
+
  #If we are not within the bounds then exit
  if timestep == "MONTHLY":
   idate = datetime.datetime(idate.year,idate.month,1)
@@ -467,11 +486,14 @@ def Create_Images(date,dims,dataset,timestep,info,Reprocess_Flag):
  # if (date + datetime.timedelta(days=1)).year == date.year:
  #  return
  # date = datetime.datetime(date.year,1,1)
+ #Define the file to read
+ (dir_output,date_output) = datetime2outputtime(date,timestep) 
+ image_dir = '../IMAGES/%s/%s'  % (dir_output,dataset)
+ #if os.path.exists(image_dir) == True and Reprocess_Flag == False:
+ # return
 
  print_info_to_command_line('Dataset: %s Timestep: %s (Creating Images)' % (dataset,timestep))
  
- #Define the file to read
- (dir_output,date_output) = datetime2outputtime(date,timestep) 
  file_netcdf = '../DATA_GRID/%s/%s_%s_%s.nc' % (dir_output,dataset,date_output,timestep.lower())
  #Open control file
  ga("sdfopen %s" % file_netcdf)
@@ -499,7 +521,8 @@ def Create_Images(date,dims,dataset,timestep,info,Reprocess_Flag):
   date_tmp = date + t*dt#relativedelta.relativedelta(dt[timestep] = 1)
   (dir_output,date_output) = datetime2outputtime(date_tmp,timestep)
   ga("set time %s" % datetime2gradstime(date_tmp))
-  #Create image and colorbars for all variables  
+  #Create image and colorbars for the Google Maps images
+  '''
   for var in variables:#qh.vars:
    image_file = '%s/%s_%s.png'  % (image_dir,var,date_output)
    #Skip image if it exists and we don't want to reprocess it
@@ -513,9 +536,25 @@ def Create_Images(date,dims,dataset,timestep,info,Reprocess_Flag):
    cflag = True
    if var in ['flw','flw_pct']:
     cflag = False
-   Create_Image(image_file,data,cmap,levels,norm,cflag)
+   Create_Image(image_file,data,cmap,levels,norm,cflag,'Google Maps')
    colormap_file = '../IMAGES/COLORBARS/%s--%s_%s.png' % (dataset,var,timestep)
    Create_Colorbar(colormap_file,cmap,norm,var,levels,False)
+  '''
+  #Create static image
+  for var in variables:
+   image_file = '%s/%s_%s_s.png'  % (image_dir,var,date_output)
+   #Skip image if it exists and we don't want to reprocess it
+   if os.path.exists(image_file) and Reprocess_Flag == False:
+    continue
+   ga("data = maskout(%s,%s.2(t=1))" % (var,variables[var]['mask']))
+   if var in ["spi1","spi3","spi6","spi12","vcpct","vc1","vc2","pct30day"]:
+    ga("data = smth9(data)")
+   data = ga.exp("data")
+   (cmap,levels,norm) = Define_Colormap(var,timestep)
+   cflag = True
+   if var in ['flw','flw_pct']:
+    cflag = False
+   Create_Image(image_file,data,cmap,levels,norm,cflag,'Static')
 
  #Close access to file
  ga("close 2")
@@ -636,12 +675,9 @@ def Define_Colormap(var,timestep):
   cmap = plt.cm.YlGn
   norm = mpl.colors.Normalize(vmin=np.min(levels),vmax=np.max(levels), clip=False)
 
- #VIC output
- #if var in ["
-
  return (cmap,levels,norm)
 
-def Create_Image(file,data,cmap,levels,norm,cflag):
+def Create_Image(file,data,cmap,levels,norm,cflag,type):
 
  #Extract grid info
  lats = data.grid.lat
@@ -653,27 +689,57 @@ def Create_Image(file,data,cmap,levels,norm,cflag):
  urcrnrlat = lats[-1]# + res/2
  llcrnrlon = lons[0]# - res/2
  urcrnrlon = lons[-1]# + res/2
- m = Basemap(llcrnrlat=llcrnrlat,urcrnrlat=urcrnrlat,llcrnrlon=llcrnrlon,urcrnrlon=urcrnrlon,epsg=3857)
- lons,lats = np.meshgrid(lons,lats)
- width = 10
- height = width*m.aspect
- #Plot image
- fig = plt.figure(frameon=False)
- fig.set_size_inches(width,height)
- ax = plt.Axes(fig,[0., 0., 1., 1.])
- #ax.set_axis_bgcolor('none')
- ax.set_axis_off()
- ax.m = m
- fig.add_axes(ax)
- plt.axis('off')
- #x,y = m(x,y)
- #x, y = m(*np.meshgrid(lons,lats))
- cs = m.pcolormesh(lons,lats,data,latlon=True,shading='flat',cmap=cmap, norm=norm)
- if cflag == True:
-  cs = m.contourf(lons,lats,data,latlon=True,levels=levels,cmap=cmap,norm=norm)
- plt.savefig(file,transparent=True)
- plt.close()
-
+ if type == 'Google Maps':
+  m = Basemap(llcrnrlat=llcrnrlat,urcrnrlat=urcrnrlat,llcrnrlon=llcrnrlon,urcrnrlon=urcrnrlon,epsg=3857)
+  lons,lats = np.meshgrid(lons,lats)
+  width = 10
+  height = width*m.aspect
+  #Plot image
+  fig = plt.figure(frameon=False)
+  fig.set_size_inches(width,height)
+  ax = plt.Axes(fig,[0., 0., 1., 1.])
+  #ax.set_axis_bgcolor('none')
+  ax.set_axis_off()
+  ax.m = m
+  fig.add_axes(ax)
+  plt.axis('off')
+  #x,y = m(x,y)
+  #x, y = m(*np.meshgrid(lons,lats))
+  cs = m.pcolormesh(lons,lats,data,latlon=True,shading='flat',cmap=cmap, norm=norm)
+  if cflag == True:
+   cs = m.contourf(lons,lats,data,latlon=True,levels=levels,cmap=cmap,norm=norm)
+  plt.savefig(file,transparent=True)
+  plt.close()
+ elif type == 'Static':
+  m = Basemap(llcrnrlat=llcrnrlat,urcrnrlat=urcrnrlat,llcrnrlon=llcrnrlon,urcrnrlon=urcrnrlon,epsg=3857)
+  lons,lats = np.meshgrid(lons,lats)
+  width = 10
+  height = width*m.aspect
+  #Plot image
+  fig = plt.figure()
+  fig.set_size_inches(width,height)
+  ax = plt.Axes(fig,[0.15, 0.05, 0.75, 0.9])
+  ax.set_axis_bgcolor('#E5E5E5')
+  #ax.set_axis_off()
+  ax.m = m
+  fig.add_axes(ax)
+  cs = m.pcolormesh(lons,lats,data,latlon=True,shading='flat',cmap=cmap, norm=norm)
+  if cflag == True:
+   cs = m.contourf(lons,lats,data,latlon=True,levels=levels,cmap=cmap,norm=norm)
+  m.drawcoastlines(linewidth=0.15)
+  m.drawcountries(linewidth=0.15)
+  #m.drawrivers(linewidth=0.025)
+  npar = len(data.grid.lat)/5
+  nmer = len(data.grid.lat)/5
+  parallels = data.grid.lat[npar/2:-1:npar]
+  meridians = data.grid.lon[nmer/2:-1:nmer]
+  m.drawparallels(parallels,labels=[1,0,0,0])
+  m.drawmeridians(meridians,labels=[0,0,0,1])
+  plt.colorbar(shrink=0.6)
+  plt.savefig(file)
+  plt.close()
+  os.system('convert %s -trim %s' % (file,file))
+ 
  return
 
 def Extract_Gridded_Data(dataset,tstep,idate,fdate,info):
@@ -686,8 +752,10 @@ def Extract_Gridded_Data(dataset,tstep,idate,fdate,info):
  variables = []
  for var in info['variables']:
   variables.append(var)
- ga("set t 1")
- idate_dataset = gradstime2datetime(ga.exp(variables[0]).grid.time[0])
+ #ga("set t 1")
+ #idate_dataset = gradstime2datetime(ga.exp(variables[0]).grid.time[0])
+ idate_dataset = info['timestep'][tstep]['idate']
+ fdate_dataset = info['timestep'][tstep]['fdate']
 
  #Define current time step
  if tstep == "DAILY":
@@ -705,7 +773,7 @@ def Extract_Gridded_Data(dataset,tstep,idate,fdate,info):
   fdate = datetime.datetime(fdate.year,1,1)
 
  #Leave if before initial time step
- if idate < idate_dataset:
+ if idate < idate_dataset or fdate > fdate_dataset:
   ga("close 1")
   return
 
@@ -742,7 +810,7 @@ def Extract_Gridded_Data(dataset,tstep,idate,fdate,info):
 
  return OUTPUT
 
-def Create_and_Update_All_Point_Data(idate,fdate,info,tstep):
+def Create_and_Update_Point_Data(idate,fdate,info,tstep):
 
  #Load mask
  ga("sdfopen ../DATA_GRID/MASKS/mask.nc")
@@ -755,6 +823,8 @@ def Create_and_Update_All_Point_Data(idate,fdate,info,tstep):
  #Iterate through all datasets extracting the necessary info
  GRID_DATA = {}
  for dataset in info:
+  if info[dataset]['group'] == 'Forecast':
+    continue
   print dataset
   TEMP = Extract_Gridded_Data(dataset,tstep,idate,fdate,info[dataset])
   GRID_DATA[dataset] = TEMP

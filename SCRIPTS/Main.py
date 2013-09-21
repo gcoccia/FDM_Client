@@ -20,8 +20,8 @@ dt = datetime.timedelta(days=1)
 date = datetime.datetime.today()
 
 #Always redownload and reprocess the last 30 days
-idate = datetime.datetime(2012,1,1)
-fdate = datetime.datetime(2012,12,31)
+idate = datetime.datetime(2011,1,1)
+fdate = datetime.datetime(2013,9,15)
 
 #Prepare the mask
 cl.Create_Mask(dims,True)
@@ -46,7 +46,6 @@ while date <= fdate:
 
    #Download and process the data
    datasets[dataset] = cl.Download_and_Process(date,dims,tstep,dataset,datasets[dataset],False)
-   
  date = date + dt
 
 #Preparing all the images
@@ -62,8 +61,7 @@ while date <= fdate:
   for tstep in datasets[dataset]['timestep']:
 
    #Create Images
-   print "hold"
-   #cl.Create_Images(date,dims,dataset,tstep,datasets[dataset],True)
+   cl.Create_Images(date,dims,dataset,tstep,datasets[dataset],False)
  
  date = date + dt
 
@@ -71,7 +69,7 @@ while date <= fdate:
 #for dataset in datasets:
 for tstep in ['DAILY','MONTHLY','YEARLY']:
   print "%s" % (tstep)
-  cl.Create_and_Update_All_Point_Data(idate,fdate,datasets,tstep)
+  cl.Create_and_Update_Point_Data(idate,fdate,datasets,tstep)
   #cl.Create_and_Update_Point_Data(idate,fdate,tstep,dataset,datasets[dataset]['variables'])
 
 #4. Update the xml file
