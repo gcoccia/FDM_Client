@@ -13,7 +13,7 @@ import xml.etree.ElementTree as ET
 grads_exe = '../LIBRARIES/grads-2.0.1.oga.1/Contents/grads'
 ga = grads.GrADS(Bin=grads_exe,Window=False,Echo=False)
 
-def Determine_Dataset_Boundaries(dataset,tstep,info,dims):
+def Determine_Dataset_Boundaries(dataset,tstep,info,dims,idate_all,fdate_all):
 
  print_info_to_command_line('Updating the time information for %s/%s' % (dataset,tstep))
 
@@ -46,22 +46,28 @@ def Determine_Dataset_Boundaries(dataset,tstep,info,dims):
  #Close grads file
  ga("close 1")
  
- if info['group'] != 'Forecast':
-  #Download first time step if necessary
-  if tstep == "DAILY":
-   file = '../DATA_GRID/%04d/%02d/%02d/%s_%04d%02d%02d_daily.nc' % (idate.year,idate.month,idate.day,dataset,idate.year,idate.month,idate.day)
-  if tstep == "MONTHLY":
-   file = '../DATA_GRID/%04d/%02d/%s_%04d%02d_monthly.nc' % (idate.year,idate.month,dataset,idate.year,idate.month)
-  if tstep == "YEARLY":
-   file = '../DATA_GRID/%04d/%s_%04d_yearly.nc' % (idate.year,dataset,idate.year)
-  if os.path.exists(file) == False:
-   Setup_Routines(idate)
-   Download_and_Process(idate,dims,tstep,dataset,info,True)
+ #if info['group'] != 'Forecast':
+ #Download first time step if necessary
+ if tstep == "DAILY":
+  file = '../DATA_GRID/%04d/%02d/%02d/%s_%04d%02d%02d_daily.nc' % (idate.year,idate.month,idate.day,dataset,idate.year,idate.month,idate.day)
+ if tstep == "MONTHLY":
+  file = '../DATA_GRID/%04d/%02d/%s_%04d%02d_monthly.nc' % (idate.year,idate.month,dataset,idate.year,idate.month)
+ if tstep == "YEARLY":
+  file = '../DATA_GRID/%04d/%s_%04d_yearly.nc' % (idate.year,dataset,idate.year)
+ if os.path.exists(file) == False:
+  Setup_Routines(idate)
+  Download_and_Process(idate,dims,tstep,dataset,info,True)
 
-  #Determine the size of the file
-  info['timestep'][tstep]['fsize'] = os.stat(file).st_size
+ #Determine the size of the file
+ info['timestep'][tstep]['fsize'] = os.stat(file).st_size
 
- return info
+ #Adjust the idate_all and fdate_all if necessary
+ if idate < idate_all:
+  idate_all = idate
+ if fdate > fdate_all:
+  fdate_all = fdate
+
+ return (info,idate_all,fdate_all)
 
 def Read_and_Process_Main_Info():
 
@@ -407,7 +413,7 @@ def Download_and_Process(date,dims,tstep,dataset,info,Reprocess_Flag):
 
  #If file is the appropriate size
  #if os.path.exists(file) == True and Reprocess_Flag == False:
- if os.path.exists(file) and real_date != idate and abs(1-float(os.stat(file).st_size)/float(info['timestep'][tstep]['fsize'])) < 0.1 and Reprocess_Flag == False:
+ if os.path.exists(file) and abs(1-float(os.stat(file).st_size)/float(info['timestep'][tstep]['fsize'])) < 0.1 and Reprocess_Flag == False:
   return info
 
  print_info_to_command_line('Dataset: %s Timestep: %s (Downloading and Processing data)' % (dataset,tstep))
@@ -500,8 +506,9 @@ def Create_Images(date,dims,dataset,timestep,info,Reprocess_Flag):
  #Define the file to read
  (dir_output,date_output) = datetime2outputtime(date,timestep) 
  image_dir = '../IMAGES/%s/%s'  % (dir_output,dataset)
- #if os.path.exists(image_dir) == True and Reprocess_Flag == False:
- # return
+
+ if os.path.exists(image_dir) == True and Reprocess_Flag == False:
+  return
 
  print_info_to_command_line('Dataset: %s Timestep: %s (Creating Images)' % (dataset,timestep))
  
@@ -751,20 +758,34 @@ def Create_Image(file,data,cmap,levels,norm,cflag,type):
  
  return
 
-def Extract_Gridded_Data(dataset,tstep,idate,fdate,info):
+def Extract_Gridded_Data(dataset,tstep,idate,fdate,info,open_type):
+
+ idate_dataset = info['timestep'][tstep]['idate']
+ fdate_dataset = info['timestep'][tstep]['fdate']
+ #Leave if before initial time step
+ if idate < idate_dataset:
+  idate = idate_dataset
+ if fdate > fdate_dataset:
+  fdate = fdate_dataset
+ if idate > fdate:
+  return
 
  #Open dataset control file and read information
- ga("xdfopen ../DATA_GRID/CTL/%s_%s.ctl" % (dataset,tstep))
+ if open_type == 'xdfopen':
+  ga("xdfopen ../DATA_GRID/CTL/%s_%s.ctl" % (dataset,tstep))
+ elif open_type == 'sdfopen':
+  if tstep == 'DAILY':
+   ga("sdfopen ../DATA_GRID/%04d/%02d/%02d/%s_%04d%02d%02d_daily.nc" % (idate.year,idate.month,idate.day,dataset,idate.year,idate.month,idate.day))
+   fdate = fdate + 6*relativedelta.relativedelta(days=1)
+  elif tstep == 'MONTHLY':
+   ga("sdfopen ../DATA_GRID/%04d/%02d/%s_%04d%02d_monthly.nc" % (idate.year,idate.month,dataset,idate.year,idate.month))
+   fdate = fdate + 5*relativedelta.relativedelta(months=1)
  group = dataset
  vars_file = ga.query("file").vars
  vars_info_file = ga.query("file").var_titles
  variables = []
  for var in info['variables']:
   variables.append(var)
- #ga("set t 1")
- #idate_dataset = gradstime2datetime(ga.exp(variables[0]).grid.time[0])
- idate_dataset = info['timestep'][tstep]['idate']
- fdate_dataset = info['timestep'][tstep]['fdate']
 
  #Define current time step
  if tstep == "DAILY":
@@ -780,11 +801,6 @@ def Extract_Gridded_Data(dataset,tstep,idate,fdate,info):
   t_final = fdate.year - idate_dataset.year
   idate = datetime.datetime(idate.year,1,1)
   fdate = datetime.datetime(fdate.year,1,1)
-
- #Leave if before initial time step
- if idate < idate_dataset or fdate > fdate_dataset:
-  ga("close 1")
-  return
 
  #Extract the gridded data
  ga("set time %s %s" % (datetime2gradstime(idate),datetime2gradstime(fdate)))
@@ -819,7 +835,7 @@ def Extract_Gridded_Data(dataset,tstep,idate,fdate,info):
 
  return OUTPUT
 
-def Create_and_Update_Point_Data(idate,fdate,info,tstep):
+def Create_and_Update_Point_Data(idate,fdate,info):
 
  #Load mask
  ga("sdfopen ../DATA_GRID/MASKS/mask.nc")
@@ -831,18 +847,24 @@ def Create_and_Update_Point_Data(idate,fdate,info,tstep):
 
  #Iterate through all datasets extracting the necessary info
  GRID_DATA = {}
- for dataset in info:
-  if info[dataset]['group'] == 'Forecast':
-    continue
-  print dataset
-  TEMP = Extract_Gridded_Data(dataset,tstep,idate,fdate,info[dataset])
-  GRID_DATA[dataset] = TEMP
-
+ open_type = 'xdfopen'
+ tsteps = ['DAILY','MONTHLY','YEARLY']
+ for tstep in tsteps:
+  GRID_DATA[tstep] = {}
+  for dataset in info:
+   if tstep in info[dataset]['timestep']:
+    if info[dataset]['group'] == 'Forecast':
+     open_type = 'sdfopen'
+    else:
+     open_type = 'xdfopen'
+    TEMP = Extract_Gridded_Data(dataset,tstep,idate,fdate,info[dataset],open_type)
+    if TEMP != None:
+     GRID_DATA[tstep][dataset] = TEMP
  count = 0
  for ilat in range(lats.size):
-  print lats[ilat]
   for ilon in range(lons.size):
    if mask[ilat,ilon] == 1:
+    print lats[ilat],lons[ilon]
 
     #Determine if file exists 
     file = '../DATA_CELL/cell_%0.3f_%0.3f.nc' % (lats[ilat],lons[ilon])
@@ -851,59 +873,57 @@ def Create_and_Update_Point_Data(idate,fdate,info,tstep):
     else:
      fp = netcdf.Dataset(file,'a',format='NETCDF4')
 
-    #Determine if time step group exists
-    try:
-     grp_tstep = fp.groups[tstep]
-    except:
-     grp_tstep = fp.createGroup(tstep)
+    for tstep in GRID_DATA:
+     
+     #Determine if time step group exists
+     if tstep in fp.groups.keys():
+      grp_tstep = fp.groups[tstep]
+     else:
+      grp_tstep = fp.createGroup(tstep)
 
-    for group in info:
-
-     #Define time intervals
-     try:
-      t_initial = GRID_DATA[group]['t_initial']
-      t_final = GRID_DATA[group]['t_final']
-     except:
-      continue
-
-     #Determine if the dataset group exists
-     try:
-      grp = grp_tstep.groups[group]
-     except:
-      grp = grp_tstep.createGroup(group)
-
-     #Determine if dimensions exist
-     try:
-      dim = grp.dimensions['time']
-     except:
-      dim = grp.createDimension('time',None)
-
-     #Determine if time variable exists
-     try:
-      timeg = grp.variables['time']
-     except:
-      timeg = grp.createVariable('time','i4',('time',))
-
-     ivar = 0
-     for variable in info[group]['variables']:
-      #Determine if variables exist
+     for group in GRID_DATA[tstep]:
+      #Define time intervals
       try:
-       var = grp.variables[variable]
+       t_initial = GRID_DATA[tstep][group]['t_initial']
+       t_final = GRID_DATA[tstep][group]['t_final']
       except:
-       var = grp.createVariable(variable,'f4',('time',))
+       continue
 
-      #Assign data
-      if t_final - t_initial == 0:
-       var[t_initial:t_final+1] = GRID_DATA[group]['data'][ivar][ilat,ilon]
+      #Determine if the dataset group exists
+      if group in grp_tstep.groups.keys():
+       grp = grp_tstep.groups[group]
       else:
-       var[t_initial:t_final+1] = GRID_DATA[group]['data'][ivar][:,ilat,ilon]
-      timeg[t_initial:t_final+1] = GRID_DATA[group]['time']#time_str
-      ivar = ivar + 1
+       grp = grp_tstep.createGroup(group)
+
+      #Determine if dimensions exist  
+      if 'time' in grp.dimensions.keys():
+       dim = grp.dimensions['time']
+      else:
+       dim = grp.createDimension('time',None)
+
+      #Determine if time variable exists
+      if 'time' in grp.variables.keys():
+       timeg = grp.variables['time']
+      else:
+       timeg = grp.createVariable('time','i4',('time',))
+
+      ivar = 0
+      for variable in info[group]['variables']:
+       #Determine if variables exist
+       if variable in grp.variables.keys():
+        var = grp.variables[variable]
+       else:
+        var = grp.createVariable(variable,'f4',('time',))
+
+       #Assign data
+       if t_final - t_initial == 0:
+        var[t_initial:t_final+1] = np.ma.getdata(GRID_DATA[tstep][group]['data'][ivar][ilat,ilon])
+       else:
+        var[t_initial:t_final+1] = np.ma.getdata(GRID_DATA[tstep][group]['data'][ivar][:,ilat,ilon])
+       ivar = ivar + 1
+      timeg[t_initial:t_final+1] = GRID_DATA[tstep][group]['time']#time_str
 
     #Close the file
     fp.close()
-
- #Close the grads file
- ga("close 1")
 
  return

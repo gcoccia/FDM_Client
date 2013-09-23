@@ -29,7 +29,10 @@ cl.Create_Mask(dims,True)
 #Determine the new dataset boundaries
 for dataset in datasets:
  for tstep in datasets[dataset]['timestep']:
-  datasets[dataset] = cl.Determine_Dataset_Boundaries(dataset,tstep,datasets[dataset],dims)
+  (datasets[dataset],idate,fdate) = cl.Determine_Dataset_Boundaries(dataset,tstep,datasets[dataset],dims,idate,fdate)
+#idate = fdate - datetime.timedelta(days=30)
+idate = datetime.datetime(2010,1,1)
+#fdate = idate
 
 #Download all the requested data
 date = idate
@@ -49,6 +52,7 @@ while date <= fdate:
  date = date + dt
 
 #Preparing all the images
+'''
 date = idate 
 while date <= fdate:
 
@@ -64,12 +68,11 @@ while date <= fdate:
    cl.Create_Images(date,dims,dataset,tstep,datasets[dataset],False)
  
  date = date + dt
-
-#3. Create and update the point data
-#for dataset in datasets:
-for tstep in ['DAILY','MONTHLY','YEARLY']:
-  print "%s" % (tstep)
-  cl.Create_and_Update_Point_Data(idate,fdate,datasets,tstep)
+'''
 
 #4. Update the xml file
 cl.Update_XML_File(datasets)
+
+#3. Create and update the point data
+#for dataset in datasets:
+cl.Create_and_Update_Point_Data(idate,fdate,datasets)
