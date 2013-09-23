@@ -341,6 +341,7 @@ def Download_and_Process(date,dims,tstep,dataset,info,Reprocess_Flag):
  fdate = info['timestep'][tstep]['fdate']
  idate = info['timestep'][tstep]['idate']
  nt = (fdate - idate).days + 1
+ real_date = date
  #If we are not within the bounds then exit
  if tstep == "MONTHLY":
   idate = datetime.datetime(idate.year,idate.month,1)
@@ -406,7 +407,7 @@ def Download_and_Process(date,dims,tstep,dataset,info,Reprocess_Flag):
 
  #If file is the appropriate size
  #if os.path.exists(file) == True and Reprocess_Flag == False:
- if abs(1-float(os.stat(file).st_size)/float(info['timestep'][tstep]['fsize'])) < 0.1 and Reprocess_Flag == False:
+ if os.path.exists(file) and real_date != idate and abs(1-float(os.stat(file).st_size)/float(info['timestep'][tstep]['fsize'])) < 0.1 and Reprocess_Flag == False:
   return info
 
  print_info_to_command_line('Dataset: %s Timestep: %s (Downloading and Processing data)' % (dataset,tstep))

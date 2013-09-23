@@ -20,8 +20,8 @@ dt = datetime.timedelta(days=1)
 date = datetime.datetime.today()
 
 #Always redownload and reprocess the last 30 days
-idate = datetime.datetime(2000,1,1)
-fdate = datetime.datetime(2010,12,31)
+idate = datetime.datetime(2008,1,1)
+fdate = datetime.datetime(2013,9,15)
 
 #Prepare the mask
 cl.Create_Mask(dims,True)
