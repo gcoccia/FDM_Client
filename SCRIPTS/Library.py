@@ -13,7 +13,7 @@ import xml.etree.ElementTree as ET
 grads_exe = '../LIBRARIES/grads-2.0.1.oga.1/Contents/grads'
 ga = grads.GrADS(Bin=grads_exe,Window=False,Echo=False)
 
-def Determine_Dataset_Boundaries(dataset,tstep,info):
+def Determine_Dataset_Boundaries(dataset,tstep,info,dims):
 
  print_info_to_command_line('Updating the time information for %s/%s' % (dataset,tstep))
 
@@ -45,6 +45,21 @@ def Determine_Dataset_Boundaries(dataset,tstep,info):
 
  #Close grads file
  ga("close 1")
+ 
+ if info['group'] != 'Forecast':
+  #Download first time step if necessary
+  if tstep == "DAILY":
+   file = '../DATA_GRID/%04d/%02d/%02d/%s_%04d%02d%02d_daily.nc' % (idate.year,idate.month,idate.day,dataset,idate.year,idate.month,idate.day)
+  if tstep == "MONTHLY":
+   file = '../DATA_GRID/%04d/%02d/%s_%04d%02d_monthly.nc' % (idate.year,idate.month,dataset,idate.year,idate.month)
+  if tstep == "YEARLY":
+   file = '../DATA_GRID/%04d/%s_%04d_yearly.nc' % (idate.year,dataset,idate.year)
+  if os.path.exists(file) == False:
+   Setup_Routines(idate)
+   Download_and_Process(idate,dims,tstep,dataset,info,True)
+
+  #Determine the size of the file
+  info['timestep'][tstep]['fsize'] = os.stat(file).st_size
 
  return info
 
@@ -338,15 +353,8 @@ def Download_and_Process(date,dims,tstep,dataset,info,Reprocess_Flag):
   date = datetime.datetime(date.year,1,1)
   #nt = (fdate - idate).days + 1
 
- #If monthly time step only extract at end of month
- #if tstep == "MONTHLY" and (date + datetime.timedelta(days=1)).month == date.month and info['group'] != 'Forecast':
- # return info
-
- #If yearly time step only extract at end of month
- #if tstep == "YEARLY" and (date + datetime.timedelta(days=1)).year == date.year:
- # return info
-
  if info['group'] != 'Forecast':
+  '''
   #Download initial time step if not available
   if tstep == "DAILY":
    file = '../DATA_GRID/%04d/%02d/%02d/%s_%04d%02d%02d_daily.nc' % (idate.year,idate.month,idate.day,dataset,idate.year,idate.month,idate.day)
@@ -357,6 +365,7 @@ def Download_and_Process(date,dims,tstep,dataset,info,Reprocess_Flag):
   if os.path.exists(file) == False and date != idate:
    Setup_Routines(idate)
    Download_and_Process(idate,dims,tstep,dataset,info,Reprocess_Flag)
+  '''
   #Create/Update the control file
   file = '../DATA_GRID/CTL/%s_%s.ctl' % (dataset,tstep)
   fp = open(file,'w')
@@ -395,8 +404,9 @@ def Download_and_Process(date,dims,tstep,dataset,info,Reprocess_Flag):
   nc_tstep = 'years'
   date = datetime.datetime(date.year,1,1)
 
-  #If file exists, exit
- if os.path.exists(file) == True and Reprocess_Flag == False:
+ #If file is the appropriate size
+ #if os.path.exists(file) == True and Reprocess_Flag == False:
+ if abs(1-float(os.stat(file).st_size)/float(info['timestep'][tstep]['fsize'])) < 0.1 and Reprocess_Flag == False:
   return info
 
  print_info_to_command_line('Dataset: %s Timestep: %s (Downloading and Processing data)' % (dataset,tstep))
@@ -522,7 +532,6 @@ def Create_Images(date,dims,dataset,timestep,info,Reprocess_Flag):
   (dir_output,date_output) = datetime2outputtime(date_tmp,timestep)
   ga("set time %s" % datetime2gradstime(date_tmp))
   #Create image and colorbars for the Google Maps images
-  '''
   for var in variables:#qh.vars:
    image_file = '%s/%s_%s.png'  % (image_dir,var,date_output)
    #Skip image if it exists and we don't want to reprocess it
@@ -539,7 +548,6 @@ def Create_Images(date,dims,dataset,timestep,info,Reprocess_Flag):
    Create_Image(image_file,data,cmap,levels,norm,cflag,'Google Maps')
    colormap_file = '../IMAGES/COLORBARS/%s--%s_%s.png' % (dataset,var,timestep)
    Create_Colorbar(colormap_file,cmap,norm,var,levels,False)
-  '''
   #Create static image
   for var in variables:
    image_file = '%s/%s_%s_s.png'  % (image_dir,var,date_output)
@@ -829,6 +837,7 @@ def Create_and_Update_Point_Data(idate,fdate,info,tstep):
   TEMP = Extract_Gridded_Data(dataset,tstep,idate,fdate,info[dataset])
   GRID_DATA[dataset] = TEMP
 
+ count = 0
  for ilat in range(lats.size):
   print lats[ilat]
   for ilon in range(lons.size):

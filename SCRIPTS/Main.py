@@ -20,8 +20,8 @@ dt = datetime.timedelta(days=1)
 date = datetime.datetime.today()
 
 #Always redownload and reprocess the last 30 days
-idate = datetime.datetime(2011,1,1)
-fdate = datetime.datetime(2013,9,15)
+idate = datetime.datetime(2000,1,1)
+fdate = datetime.datetime(2010,12,31)
 
 #Prepare the mask
 cl.Create_Mask(dims,True)
@@ -29,7 +29,7 @@ cl.Create_Mask(dims,True)
 #Determine the new dataset boundaries
 for dataset in datasets:
  for tstep in datasets[dataset]['timestep']:
-  datasets[dataset] = cl.Determine_Dataset_Boundaries(dataset,tstep,datasets[dataset])
+  datasets[dataset] = cl.Determine_Dataset_Boundaries(dataset,tstep,datasets[dataset],dims)
 
 #Download all the requested data
 date = idate
@@ -70,7 +70,6 @@ while date <= fdate:
 for tstep in ['DAILY','MONTHLY','YEARLY']:
   print "%s" % (tstep)
   cl.Create_and_Update_Point_Data(idate,fdate,datasets,tstep)
-  #cl.Create_and_Update_Point_Data(idate,fdate,tstep,dataset,datasets[dataset]['variables'])
 
 #4. Update the xml file
 cl.Update_XML_File(datasets)
