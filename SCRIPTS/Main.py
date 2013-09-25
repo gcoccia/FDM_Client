@@ -30,8 +30,8 @@ cl.Create_Mask(dims,True)
 for dataset in datasets:
  for tstep in datasets[dataset]['timestep']:
   (datasets[dataset],idate,fdate) = cl.Determine_Dataset_Boundaries(dataset,tstep,datasets[dataset],dims,idate,fdate)
-idate = fdate - datetime.timedelta(days=15)
-#idate = datetime.datetime(2010,1,1)
+#idate = fdate - datetime.timedelta(days=15)
+idate = datetime.datetime(2010,1,1)
 #fdate = idate
 
 #Download all the requested data
@@ -52,6 +52,7 @@ while date <= fdate:
  date = date + dt
 
 #Preparing all the images
+'''
 date = idate 
 while date <= fdate:
 
@@ -67,6 +68,7 @@ while date <= fdate:
    cl.Create_Images(date,dims,dataset,tstep,datasets[dataset],False)
  
  date = date + dt
+'''
 
 #4. Update the xml file
 cl.Update_XML_File(datasets)

@@ -783,9 +783,12 @@ def Extract_Gridded_Data(dataset,tstep,idate,fdate,info,open_type):
  group = dataset
  vars_file = ga.query("file").vars
  vars_info_file = ga.query("file").var_titles
+ '''
  variables = []
  for var in info['variables']:
   variables.append(var)
+ '''
+ variables = vars_file
 
  #Define current time step
  if tstep == "DAILY":
@@ -819,7 +822,7 @@ def Extract_Gridded_Data(dataset,tstep,idate,fdate,info,open_type):
  time_str = []
  date = idate
  while date <= fdate:
-  time_str.append(int(date.strftime("%s")))
+  time_str.append(24*3600*(date - datetime.datetime(1970,1,1)).days)
   date = date + dt
 
  #Prepare dictionary
@@ -908,7 +911,7 @@ def Create_and_Update_Point_Data(idate,fdate,info):
        timeg = grp.createVariable('time','i4',('time',))
 
       ivar = 0
-      for variable in info[group]['variables']:
+      for variable in GRID_DATA[tstep][group]['variables']:
        #Determine if variables exist
        if variable in grp.variables.keys():
         var = grp.variables[variable]
