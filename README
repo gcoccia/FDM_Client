@@ -1,1 +1,6 @@
-#This directory serves as the client side of the African Drought Monitor V2
+1. Copy settings.xml.ref to settings.xml and adjust the dimensions and variables
+2. wget the libraries folder from http://stream.princeton.edu/ADM/LIBRARIES 
+3. Run python Main.py to determine the libraries that are missing
+4. Setup the a soft link from /var/www/html to the main directory
+5. Clone the webpage
+

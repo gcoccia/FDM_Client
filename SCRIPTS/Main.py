@@ -18,13 +18,11 @@ import dateutil.relativedelta as relativedelta
 #1. Determine the dimensions
 (dims,datasets) = cl.Read_and_Process_Main_Info()
 dt = datetime.timedelta(days=1)
-date = datetime.datetime.today()
-
-#Always redownload and reprocess the last 30 days
-idate = datetime.datetime(2008,1,1)
-fdate = datetime.datetime(2013,9,15)
 
 #Prepare the mask
+idate = datetime.datetime(2013,1,1)
+fdate = datetime.datetime(2013,1,1)
+cl.Setup_Routines(idate)
 cl.Create_Mask(dims,True)
 
 #Determine the new dataset boundaries
@@ -33,7 +31,6 @@ for dataset in datasets:
   (datasets[dataset],idate,fdate) = cl.Determine_Dataset_Boundaries(dataset,tstep,datasets[dataset],dims,idate,fdate)
 #idate = fdate - datetime.timedelta(days=15)
 idate = datetime.datetime(2013,1,1)
-#fdate = idate
 
 #Download all the requested data
 date = idate
@@ -69,9 +66,6 @@ while date <= fdate:
  
  date = date + dt
 
-#4. Update the xml file
-cl.Update_XML_File(datasets)
-
 #3. Create and update the point data
 idate_tmp = idate
 while idate_tmp <= fdate:
@@ -81,4 +75,7 @@ while idate_tmp <= fdate:
  print idate_tmp,fdate_tmp
  cl.Create_and_Update_Point_Data(idate_tmp,fdate_tmp,datasets)
  idate_tmp = fdate_tmp + dt
+
+#4. Update the xml file
+cl.Update_XML_File(datasets)
 
