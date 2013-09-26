@@ -184,6 +184,10 @@ def Setup_Routines(date):
  Check_and_Make_Directory(dir)
  dir = "../IMAGES"
  Check_and_Make_Directory(dir)
+ dir = "../WORKSPACE"
+ if os.path.exists(dir) == False:
+  os.system("mkdir %s" % dir)
+  os.system("chmod 777 %s" % dir)
 
  #Setup miscellanous directories
  dir = "../DATA_GRID/CTL"
@@ -492,17 +496,6 @@ def Create_Images(date,dims,dataset,timestep,info,Reprocess_Flag):
  if date < idate or date > fdate:
   return
 
- #If monthly time step only extract at end of month
- #if timestep == "MONTHLY":
- # if (date + datetime.timedelta(days=1)).month == date.month:
- #  return
- # date = datetime.datetime(date.year,date.month,1)
-
- #If yearly time step only extract at end of month
- #if timestep == "YEARLY": 
- # if (date + datetime.timedelta(days=1)).year == date.year:
- #  return
- # date = datetime.datetime(date.year,1,1)
  #Define the file to read
  (dir_output,date_output) = datetime2outputtime(date,timestep) 
  image_dir = '../IMAGES/%s/%s'  % (dir_output,dataset)
@@ -745,8 +738,8 @@ def Create_Image(file,data,cmap,levels,norm,cflag,type):
   m.drawcoastlines(linewidth=0.15)
   m.drawcountries(linewidth=0.15)
   #m.drawrivers(linewidth=0.025)
-  npar = len(data.grid.lat)/5
-  nmer = len(data.grid.lat)/5
+  npar = len(data.grid.lat)/2
+  nmer = len(data.grid.lat)/2
   parallels = data.grid.lat[npar/2:-1:npar]
   meridians = data.grid.lon[nmer/2:-1:nmer]
   m.drawparallels(parallels,labels=[1,0,0,0])
@@ -783,12 +776,10 @@ def Extract_Gridded_Data(dataset,tstep,idate,fdate,info,open_type):
  group = dataset
  vars_file = ga.query("file").vars
  vars_info_file = ga.query("file").var_titles
- '''
  variables = []
  for var in info['variables']:
   variables.append(var)
- '''
- variables = vars_file
+ #variables = vars_file
 
  #Define current time step
  if tstep == "DAILY":
@@ -911,7 +902,7 @@ def Create_and_Update_Point_Data(idate,fdate,info):
        timeg = grp.createVariable('time','i4',('time',))
 
       ivar = 0
-      for variable in GRID_DATA[tstep][group]['variables']:
+      for variable in info[group]['variables']:#GRID_DATA[tstep][group]['variables']:
        #Determine if variables exist
        if variable in grp.variables.keys():
         var = grp.variables[variable]
