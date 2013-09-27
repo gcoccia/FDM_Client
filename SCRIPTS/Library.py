@@ -1,5 +1,5 @@
 import matplotlib as mpl
-mpl.use('Agg')
+mpl.use('agg')
 import matplotlib.pyplot as plt
 import os
 import datetime
@@ -10,6 +10,7 @@ import time
 import netCDF4 as netcdf
 import dateutil.relativedelta as relativedelta
 import xml.etree.ElementTree as ET
+#import multiprocessing as mp
 grads_exe = '../LIBRARIES/grads-2.0.1.oga.1/Contents/grads'
 ga = grads.GrADS(Bin=grads_exe,Window=False,Echo=False)
 
@@ -480,6 +481,7 @@ def datetime2outputtime(date,timestep):
 
 def Create_Images(date,dims,dataset,timestep,info,Reprocess_Flag):
 
+ ga = grads.GrADS(Bin=grads_exe,Window=False,Echo=False)
  variables = info['variables']
  idate = info['timestep'][timestep]['idate']
  fdate = info['timestep'][timestep]['fdate']
@@ -527,12 +529,14 @@ def Create_Images(date,dims,dataset,timestep,info,Reprocess_Flag):
  if os.path.exists(image_dir) == False:
   os.mkdir(image_dir)
  #Iterate through all the time steps (if monitor it will only be one...)
+ tic = time.clock()
  for t in xrange(0,nt):
   #Set time step
   date_tmp = date + t*dt#relativedelta.relativedelta(dt[timestep] = 1)
   (dir_output,date_output) = datetime2outputtime(date_tmp,timestep)
   ga("set time %s" % datetime2gradstime(date_tmp))
   #Create image and colorbars for the Google Maps images
+  process = []
   for var in variables:#qh.vars:
    image_file = '%s/%s_%s.png'  % (image_dir,var,date_output)
    #Skip image if it exists and we don't want to reprocess it
@@ -546,10 +550,16 @@ def Create_Images(date,dims,dataset,timestep,info,Reprocess_Flag):
    cflag = True
    if var in ['flw','flw_pct']:
     cflag = False
-   Create_Image(image_file,data,cmap,levels,norm,cflag,'Google Maps')
+   Create_Image(image_file,data,cmap,levels,norm,cflag,'Google Maps') 
+   #p = mp.Process(target=Create_Image,args=(image_file,data,cmap,levels,norm,cflag,'Google Maps'))
    colormap_file = '../IMAGES/COLORBARS/%s--%s_%s.png' % (dataset,var,timestep)
    Create_Colorbar(colormap_file,cmap,norm,var,levels,False)
+   #p.start()
+   #process.append(p)
+  #for p in process:
+   #p.join()
   #Create static image
+  process = []
   for var in variables:
    image_file = '%s/%s_%s_s.png'  % (image_dir,var,date_output)
    #Skip image if it exists and we don't want to reprocess it
@@ -564,6 +574,11 @@ def Create_Images(date,dims,dataset,timestep,info,Reprocess_Flag):
    if var in ['flw','flw_pct']:
     cflag = False
    Create_Image(image_file,data,cmap,levels,norm,cflag,'Static')
+   #p = mp.Process(target=Create_Image,args=(image_file,data,cmap,levels,norm,cflag,'Static'))
+   #p.start()
+   #process.append(p)
+  #for p in process:
+   #p.join()
 
  #Close access to file
  ga("close 2")
@@ -698,10 +713,11 @@ def Create_Image(file,data,cmap,levels,norm,cflag,type):
  urcrnrlat = lats[-1]# + res/2
  llcrnrlon = lons[0]# - res/2
  urcrnrlon = lons[-1]# + res/2
+ tic = time.clock()
  if type == 'Google Maps':
   m = Basemap(llcrnrlat=llcrnrlat,urcrnrlat=urcrnrlat,llcrnrlon=llcrnrlon,urcrnrlon=urcrnrlon,epsg=3857)
   lons,lats = np.meshgrid(lons,lats)
-  width = 10
+  width = 10.0
   height = width*m.aspect
   #Plot image
   fig = plt.figure(frameon=False)
@@ -709,7 +725,8 @@ def Create_Image(file,data,cmap,levels,norm,cflag,type):
   ax = plt.Axes(fig,[0., 0., 1., 1.])
   #ax.set_axis_bgcolor('none')
   ax.set_axis_off()
-  ax.m = m
+  ax.m = m#Basemap(llcrnrlat=llcrnrlat,urcrnrlat=urcrnrlat,llcrnrlon=llcrnrlon,urcrnrlon=urcrnrlon,epsg=3857)
+  #lons,lats = np.meshgrid(lons,lats)
   fig.add_axes(ax)
   plt.axis('off')
   #x,y = m(x,y)

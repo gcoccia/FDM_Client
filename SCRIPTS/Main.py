@@ -14,6 +14,22 @@ import xml.etree.ElementTree as ET
 import datetime
 import time
 import dateutil.relativedelta as relativedelta
+import multiprocessing as mp
+
+def Create_Images_All(date,dims,datasets,Reprocess_Flag):
+
+ for dataset in datasets:
+  for tstep in datasets[dataset]['timestep']:
+
+   if tstep == 'MONTHLY' and (date + datetime.timedelta(days=1)).month == date.month:
+    continue
+   if tstep == 'YEARLY' and (date + datetime.timedelta(days=1)).year == date.year: 
+    continue
+
+   #Create Images
+   cl.Create_Images(date,dims,dataset,tstep,datasets[dataset],Reprocess_Flag)
+ 
+ return
 
 #1. Determine the dimensions
 (dims,datasets) = cl.Read_and_Process_Main_Info()
@@ -30,7 +46,9 @@ for dataset in datasets:
  for tstep in datasets[dataset]['timestep']:
   (datasets[dataset],idate,fdate) = cl.Determine_Dataset_Boundaries(dataset,tstep,datasets[dataset],dims,idate,fdate)
 #idate = fdate - datetime.timedelta(days=15)
-idate = datetime.datetime(2013,1,1)
+idate = datetime.datetime(1950,1,1)
+fdate = datetime.datetime(1970,12,31)
+#fdate = datetime.datetime(1964,1,1)
 
 #Download all the requested data
 date = idate
@@ -51,25 +69,30 @@ while date <= fdate:
 
 #Preparing all the images
 date = idate 
+process = []
+nthreads = 10
 while date <= fdate:
 
- print date
+ for ithread in xrange(0,nthreads):
 
- #Create Images
+  print date
 
- #For each availabe data set:
- for dataset in datasets:
-  for tstep in datasets[dataset]['timestep']:
+  #Create Images
+  p = mp.Process(target=Create_Images_All,args=(date,dims,datasets,True))
+  p.start()
+  process.append(p)
+  date = date + dt
+  if date > fdate:
+   break
 
-   #Create Images
-   cl.Create_Images(date,dims,dataset,tstep,datasets[dataset],False)
- 
- date = date + dt
+ for p in process:
+  p.join()
 
+exit()
 #3. Create and update the point data
 idate_tmp = idate
 while idate_tmp <= fdate:
- fdate_tmp = idate + relativedelta.relativedelta(years=1)
+ fdate_tmp = idate + relativedelta.relativedelta(years=5)
  if fdate_tmp > fdate:
   fdate_tmp = fdate
  print idate_tmp,fdate_tmp
