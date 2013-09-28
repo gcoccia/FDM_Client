@@ -21,9 +21,9 @@ def Create_Images_All(date,dims,datasets,Reprocess_Flag):
  for dataset in datasets:
   for tstep in datasets[dataset]['timestep']:
 
-   if tstep == 'MONTHLY' and (date + datetime.timedelta(days=1)).month == date.month:
+   if tstep == 'MONTHLY' and (date + datetime.timedelta(days=1)).month == date.month and datasets[dataset]['group'] != 'Forecast':
     continue
-   if tstep == 'YEARLY' and (date + datetime.timedelta(days=1)).year == date.year: 
+   if tstep == 'YEARLY' and (date + datetime.timedelta(days=1)).year == date.year and datasets[dataset]['group'] != 'Forecast': 
     continue
 
    #Create Images
@@ -70,7 +70,7 @@ while date <= fdate:
 #Preparing all the images
 date = idate 
 process = []
-nthreads = 10
+nthreads = 1#0
 while date <= fdate:
 
  for ithread in xrange(0,nthreads):
@@ -78,7 +78,7 @@ while date <= fdate:
   print date
 
   #Create Images
-  p = mp.Process(target=Create_Images_All,args=(date,dims,datasets,True))
+  p = mp.Process(target=Create_Images_All,args=(date,dims,datasets,False))
   p.start()
   process.append(p)
   date = date + dt
@@ -88,6 +88,9 @@ while date <= fdate:
  for p in process:
   p.join()
 
+#4. Update the xml file
+#cl.Update_XML_File(datasets)
+
 #3. Create and update the point data
 idate_tmp = idate
 while idate_tmp <= fdate:
@@ -95,6 +98,7 @@ while idate_tmp <= fdate:
  if fdate_tmp > fdate:
   fdate_tmp = fdate
  print idate_tmp,fdate_tmp
+ print datasets
  cl.Create_and_Update_Point_Data(idate_tmp,fdate_tmp,datasets)
  idate_tmp = fdate_tmp + dt
 
