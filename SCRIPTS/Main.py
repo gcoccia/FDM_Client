@@ -88,7 +88,6 @@ while date <= fdate:
  for p in process:
   p.join()
 
-exit()
 #3. Create and update the point data
 idate_tmp = idate
 while idate_tmp <= fdate:
