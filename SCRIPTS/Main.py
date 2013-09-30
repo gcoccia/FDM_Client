@@ -45,8 +45,8 @@ cl.Create_Mask(dims,True)
 for dataset in datasets:
  for tstep in datasets[dataset]['timestep']:
   (datasets[dataset],idate,fdate) = cl.Determine_Dataset_Boundaries(dataset,tstep,datasets[dataset],dims,idate,fdate)
-idate = fdate - datetime.timedelta(days=15)
-#idate = datetime.datetime(1950,1,1)
+#idate = fdate - datetime.timedelta(days=15)
+idate = datetime.datetime(1971,1,1)
 #fdate = datetime.datetime(1970,12,31)
 #fdate = datetime.datetime(1964,1,1)
 
@@ -70,7 +70,7 @@ while date <= fdate:
 #Preparing all the images
 date = idate 
 process = []
-nthreads = 1#0
+nthreads = 10#0
 while date <= fdate:
 
  for ithread in xrange(0,nthreads):
@@ -94,14 +94,13 @@ while date <= fdate:
 #3. Create and update the point data
 idate_tmp = idate
 while idate_tmp <= fdate:
- fdate_tmp = idate + relativedelta.relativedelta(years=5)
- if fdate_tmp > fdate:
-  fdate_tmp = fdate
- print idate_tmp,fdate_tmp
- print datasets
- cl.Create_and_Update_Point_Data(idate_tmp,fdate_tmp,datasets)
- idate_tmp = fdate_tmp + dt
+ 
+  fdate_tmp = idate_tmp + relativedelta.relativedelta(years=10) - relativedelta.relativedelta(days=1)
+  if fdate_tmp > fdate:
+   fdate_tmp = fdate
+  print idate_tmp,fdate_tmp
+  cl.Create_and_Update_Point_Data(idate_tmp,fdate_tmp,datasets)
+  idate_tmp = fdate_tmp + dt
 
 #4. Update the xml file
 cl.Update_XML_File(datasets)
-

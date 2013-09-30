@@ -10,6 +10,7 @@ import time
 import netCDF4 as netcdf
 import dateutil.relativedelta as relativedelta
 import xml.etree.ElementTree as ET
+import multiprocessing as mp
 #import multiprocessing as mp
 grads_exe = '../LIBRARIES/grads-2.0.1.oga.1/Contents/grads'
 ga = grads.GrADS(Bin=grads_exe,Window=False,Echo=False)
@@ -768,7 +769,7 @@ def Create_Image(file,data,cmap,levels,norm,cflag,type):
  
  return
 
-def Extract_Gridded_Data(dataset,tstep,idate,fdate,info,open_type):
+def Extract_Gridded_Data(dataset,tstep,idate,fdate,info,open_type,ga):
 
  idate_dataset = info['timestep'][tstep]['idate']
  fdate_dataset = info['timestep'][tstep]['fdate']
@@ -848,6 +849,9 @@ def Extract_Gridded_Data(dataset,tstep,idate,fdate,info,open_type):
 
 def Create_and_Update_Point_Data(idate,fdate,info):
 
+ #Open grads
+ ga = grads.GrADS(Bin=grads_exe,Window=False,Echo=False)
+
  #Load mask
  ga("sdfopen ../DATA_GRID/MASKS/mask.nc")
  mask = ga.exp("mask")
@@ -868,73 +872,87 @@ def Create_and_Update_Point_Data(idate,fdate,info):
      open_type = 'sdfopen'
     else:
      open_type = 'xdfopen'
-    TEMP = Extract_Gridded_Data(dataset,tstep,idate,fdate,info[dataset],open_type)
+    TEMP = Extract_Gridded_Data(dataset,tstep,idate,fdate,info[dataset],open_type,ga)
     if TEMP != None:
      GRID_DATA[tstep][dataset] = TEMP
  count = 0
+ process = []
+ nthreads = 4
  for ilat in range(lats.size):
-  for ilon in range(lons.size):
-   if mask[ilat,ilon] == 1:
-    print lats[ilat],lons[ilon]
+  print lats[ilat]
+  p = mp.Process(target=Write_Data_Cell,args=(GRID_DATA,lats,lons,ilat,info,mask))
+  p.start()
+  process.append(p)
+  if len(process) == nthreads:
+   for p in process:
+    p.join()
+    process = []
 
-    #Determine if file exists 
-    file = '../DATA_CELL/cell_%0.3f_%0.3f.nc' % (lats[ilat],lons[ilon])
-    if os.path.exists(file) == False:
-     fp = netcdf.Dataset(file,'w',format='NETCDF4')
+ return
+
+def Write_Data_Cell(GRID_DATA,lats,lons,ilat,info,mask):
+
+ for ilon in range(lons.size):
+  if mask[ilat,ilon] == 1:
+
+   #Determine if file exists 
+   file = '../DATA_CELL/cell_%0.3f_%0.3f.nc' % (lats[ilat],lons[ilon])
+   if os.path.exists(file) == False:
+    fp = netcdf.Dataset(file,'w',format='NETCDF4')
+   else:
+    fp = netcdf.Dataset(file,'a',format='NETCDF4')
+
+   for tstep in GRID_DATA:
+      
+    #Determine if time step group exists
+    if tstep in fp.groups.keys():
+     grp_tstep = fp.groups[tstep]
     else:
-     fp = netcdf.Dataset(file,'a',format='NETCDF4')
+     grp_tstep = fp.createGroup(tstep)
 
-    for tstep in GRID_DATA:
-     
-     #Determine if time step group exists
-     if tstep in fp.groups.keys():
-      grp_tstep = fp.groups[tstep]
+    for group in GRID_DATA[tstep]:
+     #Define time intervals
+     try:
+      t_initial = GRID_DATA[tstep][group]['t_initial']
+      t_final = GRID_DATA[tstep][group]['t_final']
+     except:
+      continue
+
+     #Determine if the dataset group exists
+     if group in grp_tstep.groups.keys():
+      grp = grp_tstep.groups[group]
      else:
-      grp_tstep = fp.createGroup(tstep)
+      grp = grp_tstep.createGroup(group)
+ 
+     #Determine if dimensions exist  
+     if 'time' in grp.dimensions.keys():
+      dim = grp.dimensions['time']
+     else:
+      dim = grp.createDimension('time',None)
 
-     for group in GRID_DATA[tstep]:
-      #Define time intervals
-      try:
-       t_initial = GRID_DATA[tstep][group]['t_initial']
-       t_final = GRID_DATA[tstep][group]['t_final']
-      except:
-       continue
-
-      #Determine if the dataset group exists
-      if group in grp_tstep.groups.keys():
-       grp = grp_tstep.groups[group]
+     #Determine if time variable exists
+     if 'time' in grp.variables.keys():
+      timeg = grp.variables['time']
+     else:
+      timeg = grp.createVariable('time','i4',('time',))
+ 
+     ivar = 0
+     for variable in info[group]['variables']:#GRID_DATA[tstep][group]['variables']:
+      #Determine if variables exist
+      if variable in grp.variables.keys():
+       var = grp.variables[variable]
       else:
-       grp = grp_tstep.createGroup(group)
-
-      #Determine if dimensions exist  
-      if 'time' in grp.dimensions.keys():
-       dim = grp.dimensions['time']
+       var = grp.createVariable(variable,'f4',('time',))
+  
+      #Assign data
+      if t_final - t_initial == 0:
+       var[t_initial:t_final+1] = np.ma.getdata(GRID_DATA[tstep][group]['data'][ivar][ilat,ilon])
       else:
-       dim = grp.createDimension('time',None)
+       var[t_initial:t_final+1] = np.ma.getdata(GRID_DATA[tstep][group]['data'][ivar][:,ilat,ilon])
+      ivar = ivar + 1
+     timeg[t_initial:t_final+1] = GRID_DATA[tstep][group]['time']#time_str
 
-      #Determine if time variable exists
-      if 'time' in grp.variables.keys():
-       timeg = grp.variables['time']
-      else:
-       timeg = grp.createVariable('time','i4',('time',))
-
-      ivar = 0
-      for variable in info[group]['variables']:#GRID_DATA[tstep][group]['variables']:
-       #Determine if variables exist
-       if variable in grp.variables.keys():
-        var = grp.variables[variable]
-       else:
-        var = grp.createVariable(variable,'f4',('time',))
-
-       #Assign data
-       if t_final - t_initial == 0:
-        var[t_initial:t_final+1] = np.ma.getdata(GRID_DATA[tstep][group]['data'][ivar][ilat,ilon])
-       else:
-        var[t_initial:t_final+1] = np.ma.getdata(GRID_DATA[tstep][group]['data'][ivar][:,ilat,ilon])
-       ivar = ivar + 1
-      timeg[t_initial:t_final+1] = GRID_DATA[tstep][group]['time']#time_str
-
-    #Close the file
-    fp.close()
+   #Close the file
+   fp.close()
 
  return
