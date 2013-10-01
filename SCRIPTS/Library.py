@@ -877,17 +877,19 @@ def Create_and_Update_Point_Data(idate,fdate,info):
      GRID_DATA[tstep][dataset] = TEMP
  count = 0
  process = []
- nthreads = 10
+ nthreads = 1
  for ilat in range(lats.size):
   print lats[ilat]
-  p = mp.Process(target=Write_Data_Cell,args=(GRID_DATA,lats,lons,ilat,info,mask))
-  #Write_Data_Cell(GRID_DATA,lats,lons,ilat,info,mask)
+  #p = mp.Process(target=Write_Data_Cell,args=(GRID_DATA,lats,lons,ilat,info,mask))
+  Write_Data_Cell(GRID_DATA,lats,lons,ilat,info,mask)
+  '''
   p.start()
   process.append(p)
   if len(process) == nthreads:
    for p in process:
     p.join()
     process = []
+  '''
 
  return
 
@@ -913,7 +915,6 @@ def Write_Data_Cell(GRID_DATA,lats,lons,ilat,info,mask):
      grp_tstep = fp.createGroup(tstep)
 
     for group in GRID_DATA[tstep]:
-    #for group in ['3B42RT_BC',]:
      #Define time intervals
      try:
       t_initial = GRID_DATA[tstep][group]['t_initial']
@@ -922,44 +923,32 @@ def Write_Data_Cell(GRID_DATA,lats,lons,ilat,info,mask):
       #t_initial = 0
      except:
       continue
-     #DATA_GROUP = GRID_DATA[tstep][group]['data']
-     #TIME = GRID_DATA[tstep][group]['time']
 
      #Determine if the dataset group exists
      if group in grp_tstep.groups.keys():
       grp = grp_tstep.groups[group]
      else:
       grp = grp_tstep.createGroup(group)
- 
-     #Determine if dimensions exist  
-     if 'time' in grp.dimensions.keys():
-      dim = grp.dimensions['time']
-     else:
       dim = grp.createDimension('time',None)
-
-     #Determine if time variable exists
-     if 'time' in grp.variables.keys():
-      timeg = grp.variables['time']
-     else:
       timeg = grp.createVariable('time','i4',('time',),chunksizes=(1000,),complevel=1)#,fill_value=undef)
       timeg[0:t_final+1] = undef
- 
-     ivar = 0
-     for variable in info[group]['variables']:#GRID_DATA[tstep][group]['variables']:
-      #Determine if variables exist
-      if variable in grp.variables.keys():
-       var = grp.variables[variable]
-      else:
+      for variable in info[group]['variables']:#GRID_DATA[tstep][group]['variables']:
        var = grp.createVariable(variable,'f4',('time',),chunksizes=(1000,),complevel=1)#,fill_value=undef)
        var[0:t_final+1] = undef
-  
+
+     timeg = grp.variables['time']
+     timeg[t_initial:t_final+1] = GRID_DATA[tstep][group]['time']#time_str
+ 
+     ivar = 0
+      #Determine if variables exist
+     for variable in info[group]['variables']:
+      var = grp.variables[variable]
       #Assign data
       if t_final - t_initial == 0:
        var[t_initial:t_final+1] = GRID_DATA[tstep][group]['data'][ivar][ilat,ilon]
       else:
        var[t_initial:t_final+1] = GRID_DATA[tstep][group]['data'][ivar][:,ilat,ilon]
       ivar = ivar + 1
-     timeg[t_initial:t_final+1] = GRID_DATA[tstep][group]['time']#time_str
 
    #Close the file
    fp.close()
