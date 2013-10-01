@@ -819,7 +819,7 @@ def Extract_Gridded_Data(dataset,tstep,idate,fdate,info,open_type,ga):
  data = []
  for var in variables:
   print "Extracting %s data" % var
-  data.append(ga.exp(var))
+  data.append(np.ma.getdata(ga.exp(var)))
 
  #Create date string
  if tstep == "DAILY":
@@ -836,7 +836,7 @@ def Extract_Gridded_Data(dataset,tstep,idate,fdate,info,open_type,ga):
 
  #Prepare dictionary
  OUTPUT = {}
- OUTPUT['data'] = data
+ OUTPUT['data'] = np.array(data)
  OUTPUT['time'] = time_str
  OUTPUT['variables'] = variables
  OUTPUT['t_initial'] = t_initial
@@ -877,10 +877,11 @@ def Create_and_Update_Point_Data(idate,fdate,info):
      GRID_DATA[tstep][dataset] = TEMP
  count = 0
  process = []
- nthreads = 4
+ nthreads = 10
  for ilat in range(lats.size):
   print lats[ilat]
   p = mp.Process(target=Write_Data_Cell,args=(GRID_DATA,lats,lons,ilat,info,mask))
+  #Write_Data_Cell(GRID_DATA,lats,lons,ilat,info,mask)
   p.start()
   process.append(p)
   if len(process) == nthreads:
@@ -895,6 +896,7 @@ def Write_Data_Cell(GRID_DATA,lats,lons,ilat,info,mask):
  for ilon in range(lons.size):
   if mask[ilat,ilon] == 1:
 
+   undef = -9.99e+08
    #Determine if file exists 
    file = '../DATA_CELL/cell_%0.3f_%0.3f.nc' % (lats[ilat],lons[ilon])
    if os.path.exists(file) == False:
@@ -911,12 +913,17 @@ def Write_Data_Cell(GRID_DATA,lats,lons,ilat,info,mask):
      grp_tstep = fp.createGroup(tstep)
 
     for group in GRID_DATA[tstep]:
+    #for group in ['3B42RT_BC',]:
      #Define time intervals
      try:
       t_initial = GRID_DATA[tstep][group]['t_initial']
       t_final = GRID_DATA[tstep][group]['t_final']
+      #t_final = t_final - t_initial
+      #t_initial = 0
      except:
       continue
+     #DATA_GROUP = GRID_DATA[tstep][group]['data']
+     #TIME = GRID_DATA[tstep][group]['time']
 
      #Determine if the dataset group exists
      if group in grp_tstep.groups.keys():
@@ -934,7 +941,8 @@ def Write_Data_Cell(GRID_DATA,lats,lons,ilat,info,mask):
      if 'time' in grp.variables.keys():
       timeg = grp.variables['time']
      else:
-      timeg = grp.createVariable('time','i4',('time',))
+      timeg = grp.createVariable('time','i4',('time',),chunksizes=(1000,),complevel=1)#,fill_value=undef)
+      timeg[0:t_final+1] = undef
  
      ivar = 0
      for variable in info[group]['variables']:#GRID_DATA[tstep][group]['variables']:
@@ -942,13 +950,14 @@ def Write_Data_Cell(GRID_DATA,lats,lons,ilat,info,mask):
       if variable in grp.variables.keys():
        var = grp.variables[variable]
       else:
-       var = grp.createVariable(variable,'f4',('time',))
+       var = grp.createVariable(variable,'f4',('time',),chunksizes=(1000,),complevel=1)#,fill_value=undef)
+       var[0:t_final+1] = undef
   
       #Assign data
       if t_final - t_initial == 0:
-       var[t_initial:t_final+1] = np.ma.getdata(GRID_DATA[tstep][group]['data'][ivar][ilat,ilon])
+       var[t_initial:t_final+1] = GRID_DATA[tstep][group]['data'][ivar][ilat,ilon]
       else:
-       var[t_initial:t_final+1] = np.ma.getdata(GRID_DATA[tstep][group]['data'][ivar][:,ilat,ilon])
+       var[t_initial:t_final+1] = GRID_DATA[tstep][group]['data'][ivar][:,ilat,ilon]
       ivar = ivar + 1
      timeg[t_initial:t_final+1] = GRID_DATA[tstep][group]['time']#time_str
 

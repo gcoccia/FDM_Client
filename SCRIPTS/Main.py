@@ -46,8 +46,11 @@ for dataset in datasets:
  for tstep in datasets[dataset]['timestep']:
   (datasets[dataset],idate,fdate) = cl.Determine_Dataset_Boundaries(dataset,tstep,datasets[dataset],dims,idate,fdate)
 #idate = fdate - datetime.timedelta(days=15)
-idate = datetime.datetime(1971,1,1)
-#fdate = datetime.datetime(1970,12,31)
+#idate = datetime.datetime(idate.year,idate.month,1)
+idate = datetime.datetime(1950,1,1)
+fdate = datetime.datetime(1950,1,31)
+#idate = datetime.datetime(1971,1,1)
+#idate = datetime.datetime(1977,12,31)
 #fdate = datetime.datetime(1964,1,1)
 
 #Download all the requested data
@@ -68,9 +71,10 @@ while date <= fdate:
  date = date + dt
 
 #Preparing all the images
+'''
 date = idate 
 process = []
-nthreads = 10#0
+nthreads = 1#0
 while date <= fdate:
 
  for ithread in xrange(0,nthreads):
@@ -87,15 +91,15 @@ while date <= fdate:
 
  for p in process:
   p.join()
+'''
 
 #4. Update the xml file
 #cl.Update_XML_File(datasets)
-
 #3. Create and update the point data
 idate_tmp = idate
 while idate_tmp <= fdate:
  
-  fdate_tmp = idate_tmp + relativedelta.relativedelta(years=10) - relativedelta.relativedelta(days=1)
+  fdate_tmp = idate_tmp + relativedelta.relativedelta(years=20) - relativedelta.relativedelta(days=1)
   if fdate_tmp > fdate:
    fdate_tmp = fdate
   print idate_tmp,fdate_tmp
