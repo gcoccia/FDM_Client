@@ -199,6 +199,11 @@ def Setup_Routines(date):
  dir = "../IMAGES/COLORBARS"
  Check_and_Make_Directory(dir)
 
+ #Setup the decadal directory
+ if date.year % 10 == 0:
+  dir = "../DATA_CELL/%04d" % (date.year)
+  Check_and_Make_Directory(dir)
+
  #Setup the yearly directory
  dir = "../DATA_GRID/%04d" % (date.year)
  Check_and_Make_Directory(dir)
@@ -800,17 +805,20 @@ def Extract_Gridded_Data(dataset,tstep,idate,fdate,info,open_type,ga):
  #variables = vars_file
 
  #Define current time step
+ idate_tmp = datetime.datetime(idate.year,1,1)
+ if idate_tmp < idate_dataset:
+  idate_tmp = idate_dataset
  if tstep == "DAILY":
-  t_initial = (idate - idate_dataset).days
-  t_final = (fdate - idate_dataset).days
+  t_initial = (idate - idate_tmp).days
+  t_final = (fdate - idate_tmp).days
  if tstep == "MONTHLY":
-  t_initial = idate.month - idate_dataset.month + (idate.year - idate_dataset.year) * 12
-  t_final = fdate.month - idate_dataset.month + (fdate.year - idate_dataset.year) * 12
+  t_initial = idate.month - idate_tmp.month + (idate.year - idate_tmp.year) * 12
+  t_final = fdate.month - idate_tmp.month + (fdate.year - idate_tmp.year) * 12
   idate = datetime.datetime(idate.year,idate.month,1)
   fdate = datetime.datetime(fdate.year,fdate.month,1)
  if tstep == "YEARLY":
-  t_initial = idate.year - idate_dataset.year
-  t_final = fdate.year - idate_dataset.year
+  t_initial = idate.year - idate_tmp.year
+  t_final = fdate.year - idate_tmp.year
   idate = datetime.datetime(idate.year,1,1)
   fdate = datetime.datetime(fdate.year,1,1)
 
@@ -877,30 +885,28 @@ def Create_and_Update_Point_Data(idate,fdate,info):
      GRID_DATA[tstep][dataset] = TEMP
  count = 0
  process = []
- nthreads = 1
+ nthreads = 10
  for ilat in range(lats.size):
   print lats[ilat]
-  #p = mp.Process(target=Write_Data_Cell,args=(GRID_DATA,lats,lons,ilat,info,mask))
-  Write_Data_Cell(GRID_DATA,lats,lons,ilat,info,mask)
-  '''
+  p = mp.Process(target=Write_Data_Cell,args=(GRID_DATA,lats,lons,ilat,info,mask,idate.year))
+  #Write_Data_Cell(GRID_DATA,lats,lons,ilat,info,mask,idate.year)
   p.start()
   process.append(p)
   if len(process) == nthreads:
    for p in process:
     p.join()
     process = []
-  '''
 
  return
 
-def Write_Data_Cell(GRID_DATA,lats,lons,ilat,info,mask):
+def Write_Data_Cell(GRID_DATA,lats,lons,ilat,info,mask,year):
 
  for ilon in range(lons.size):
   if mask[ilat,ilon] == 1:
 
    undef = -9.99e+08
    #Determine if file exists 
-   file = '../DATA_CELL/cell_%0.3f_%0.3f.nc' % (lats[ilat],lons[ilon])
+   file = '../DATA_CELL/%d/cell_%0.3f_%0.3f.nc' % (year,lats[ilat],lons[ilon])
    if os.path.exists(file) == False:
     fp = netcdf.Dataset(file,'w',format='NETCDF4')
    else:
@@ -931,10 +937,8 @@ def Write_Data_Cell(GRID_DATA,lats,lons,ilat,info,mask):
       grp = grp_tstep.createGroup(group)
       dim = grp.createDimension('time',None)
       timeg = grp.createVariable('time','i4',('time',),chunksizes=(1000,),complevel=1)#,fill_value=undef)
-      timeg[0:t_final+1] = undef
       for variable in info[group]['variables']:#GRID_DATA[tstep][group]['variables']:
        var = grp.createVariable(variable,'f4',('time',),chunksizes=(1000,),complevel=1)#,fill_value=undef)
-       var[0:t_final+1] = undef
 
      timeg = grp.variables['time']
      timeg[t_initial:t_final+1] = GRID_DATA[tstep][group]['time']#time_str

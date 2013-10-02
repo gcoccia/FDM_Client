@@ -47,8 +47,8 @@ for dataset in datasets:
   (datasets[dataset],idate,fdate) = cl.Determine_Dataset_Boundaries(dataset,tstep,datasets[dataset],dims,idate,fdate)
 #idate = fdate - datetime.timedelta(days=15)
 #idate = datetime.datetime(idate.year,idate.month,1)
-idate = datetime.datetime(1950,1,1)
-fdate = datetime.datetime(1950,1,31)
+idate = datetime.datetime(2000,1,1)
+#fdate = datetime.datetime(20,12,31)
 #idate = datetime.datetime(1971,1,1)
 #idate = datetime.datetime(1977,12,31)
 #fdate = datetime.datetime(1964,1,1)
@@ -99,7 +99,7 @@ while date <= fdate:
 idate_tmp = idate
 while idate_tmp <= fdate:
  
-  fdate_tmp = idate_tmp + relativedelta.relativedelta(years=20) - relativedelta.relativedelta(days=1)
+  fdate_tmp = idate_tmp + relativedelta.relativedelta(years=10) - relativedelta.relativedelta(days=1)
   if fdate_tmp > fdate:
    fdate_tmp = fdate
   print idate_tmp,fdate_tmp
