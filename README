@@ -3,4 +3,5 @@
 3. Run python Main.py to determine the libraries that are missing
 4. Setup the a soft link from /var/www/html to the main directory
 5. Clone the webpage
+6. Insert the monitor's email information into .htpasswd.ref and copy to .htpasswd
 
