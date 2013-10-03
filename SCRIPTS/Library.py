@@ -855,7 +855,7 @@ def Extract_Gridded_Data(dataset,tstep,idate,fdate,info,open_type,ga):
 
  return OUTPUT
 
-def Create_and_Update_Point_Data(idate,fdate,info):
+def Create_and_Update_Point_Data(idate,fdate,info,nthreads):
 
  #Open grads
  ga = grads.GrADS(Bin=grads_exe,Window=False,Echo=False)
@@ -885,7 +885,7 @@ def Create_and_Update_Point_Data(idate,fdate,info):
      GRID_DATA[tstep][dataset] = TEMP
  count = 0
  process = []
- nthreads = 10
+ #nthreads = 10
  for ilat in range(lats.size):
   print lats[ilat]
   p = mp.Process(target=Write_Data_Cell,args=(GRID_DATA,lats,lons,ilat,info,mask,idate.year))
