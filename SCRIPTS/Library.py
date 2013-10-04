@@ -867,6 +867,9 @@ def Create_and_Update_Point_Data(idate,fdate,info,nthreads):
  lats = mask.grid.lat
  lons = mask.grid.lon
  mask = np.ma.getdata(mask)
+ 
+ #Find the decade
+ idecade = np.int(10*np.floor(idate.year/10))
 
  #Iterate through all datasets extracting the necessary info
  GRID_DATA = {}
@@ -888,7 +891,7 @@ def Create_and_Update_Point_Data(idate,fdate,info,nthreads):
  #nthreads = 10
  for ilat in range(lats.size):
   print lats[ilat]
-  p = mp.Process(target=Write_Data_Cell,args=(GRID_DATA,lats,lons,ilat,info,mask,idate.year))
+  p = mp.Process(target=Write_Data_Cell,args=(GRID_DATA,lats,lons,ilat,info,mask,idecade))
   #Write_Data_Cell(GRID_DATA,lats,lons,ilat,info,mask,idate.year)
   p.start()
   process.append(p)
@@ -899,14 +902,14 @@ def Create_and_Update_Point_Data(idate,fdate,info,nthreads):
 
  return
 
-def Write_Data_Cell(GRID_DATA,lats,lons,ilat,info,mask,year):
+def Write_Data_Cell(GRID_DATA,lats,lons,ilat,info,mask,idecade):
 
  for ilon in range(lons.size):
   if mask[ilat,ilon] == 1:
 
    undef = -9.99e+08
    #Determine if file exists 
-   file = '../DATA_CELL/%d/cell_%0.3f_%0.3f.nc' % (year,lats[ilat],lons[ilon])
+   file = '../DATA_CELL/%d/cell_%0.3f_%0.3f.nc' % (idecade,lats[ilat],lons[ilon])
    if os.path.exists(file) == False:
     fp = netcdf.Dataset(file,'w',format='NETCDF4')
    else:
