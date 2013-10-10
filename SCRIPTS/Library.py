@@ -784,6 +784,12 @@ def Extract_Gridded_Data(dataset,tstep,idate,fdate,info,open_type,ga):
   idate = idate_dataset
  if fdate > fdate_dataset:
   fdate = fdate_dataset
+ if tstep == 'MONTHLY':
+  idate = datetime.datetime(idate.year,idate.month,1)
+  fdate = datetime.datetime(fdate.year,fdate.month,1)
+ if tstep == 'YEARLY':
+  idate = datetime.datetime(idate.year,1,1)
+  fdate = datetime.datetime(fdate.year,1,1)
  if idate > fdate:
   return
 
@@ -822,6 +828,7 @@ def Extract_Gridded_Data(dataset,tstep,idate,fdate,info,open_type,ga):
   t_final = fdate.year - idate_tmp.year
   idate = datetime.datetime(idate.year,1,1)
   fdate = datetime.datetime(fdate.year,1,1)
+ print tstep,idate,fdate,t_initial,t_final
 
  #Extract the gridded data
  ga("set time %s %s" % (datetime2gradstime(idate),datetime2gradstime(fdate)))
