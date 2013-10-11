@@ -428,6 +428,13 @@ def Download_and_Process(date,dims,tstep,dataset,info,Reprocess_Flag):
  if os.path.exists(file) and abs(1-float(os.stat(file).st_size)/float(info['timestep'][tstep]['fsize'])) < 0.1 and Reprocess_Flag == False:
   return info
 
+ #If reprocessing, don't redo monthly and yearly if you don't have to...
+ #if Reprocess_Flag == True and os.path.exists(file) == True:
+ # if tstep == "MONTHLY" and real_date.day != 1:
+ #  return
+ # if tstep == "YEARLY" and real_date.month != 1 and real_date.day != 1:
+ #  return
+
  print_info_to_command_line('Dataset: %s Timestep: %s (Downloading and Processing data)' % (dataset,tstep))
 
  #Define the grads server root
@@ -494,6 +501,7 @@ def Create_Images(date,dims,dataset,timestep,info,Reprocess_Flag):
  fdate = info['timestep'][timestep]['fdate']
 
  #If we are not within the bounds then exit
+ real_date = date
  if timestep == "MONTHLY":
   idate = datetime.datetime(idate.year,idate.month,1)
   fdate = datetime.datetime(fdate.year,fdate.month,1)
@@ -511,6 +519,12 @@ def Create_Images(date,dims,dataset,timestep,info,Reprocess_Flag):
 
  if os.path.exists(image_dir) == True and Reprocess_Flag == False:
   return
+
+ if Reprocess_Flag == True and os.path.exists(image_dir) == True:
+  if timestep == "MONTHLY" and real_date.day != 1:
+   return
+  if timestep == "YEARLY" and real_date.month != 1 and real_date.day != 1:
+   return
 
  print_info_to_command_line('Dataset: %s Timestep: %s (Creating Images)' % (dataset,timestep))
  
@@ -560,7 +574,7 @@ def Create_Images(date,dims,dataset,timestep,info,Reprocess_Flag):
    Create_Image(image_file,data,cmap,levels,norm,cflag,'Google Maps') 
    #p = mp.Process(target=Create_Image,args=(image_file,data,cmap,levels,norm,cflag,'Google Maps'))
    colormap_file = '../IMAGES/COLORBARS/%s--%s_%s.png' % (dataset,var,timestep)
-   Create_Colorbar(colormap_file,cmap,norm,var,levels,False)
+   Create_Colorbar(colormap_file,cmap,norm,var,levels,True)#False)
    #p.start()
    #process.append(p)
   #for p in process:
@@ -614,7 +628,7 @@ def Create_Colorbar(file,cmap,norm,var,levels,Reprocess_Flag):
  if var in ["ndvi30"]:
   levels = [0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0]
  if var in ['t2ano']:
-  levels = [-4,-3,-2,-1,0,1,2,3,4]
+  levels = [-1.5,-1.0,-0.5,0,0.5,1.0,1.5]
  if var in ['t2m']:
   levels = [0,5,10,15,20,25,30,35,40]
  fig = plt.figure(figsize=(8,0.5))
@@ -651,7 +665,7 @@ def Define_Colormap(var,timestep):
   if var == "tmin":
    levels = np.linspace(265,300,40)
   if var == "t2ano":
-   levels = np.linspace(-4,4,40)
+   levels = np.linspace(-1.5,1.5,40)
   if var == "t2m":
    levels = np.linspace(0,40,40)
   cmap = plt.cm.RdBu_r

@@ -76,7 +76,7 @@ while date <= fdate:
   print date
 
   #Create Images
-  p = mp.Process(target=Create_Images_All,args=(date,dims,datasets,False))
+  p = mp.Process(target=Create_Images_All,args=(date,dims,datasets,True))
   p.start()
   process.append(p)
   date = date + dt
