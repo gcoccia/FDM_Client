@@ -59,7 +59,7 @@ def Determine_Dataset_Boundaries(dataset,tstep,info,dims,idate_all,fdate_all):
   file = '../DATA_GRID/%04d/%s_%04d_yearly.nc' % (idate.year,dataset,idate.year)
  if os.path.exists(file) == False:
   Setup_Routines(idate)
-  Download_and_Process(idate,dims,tstep,dataset,info,True)
+  Download_and_Process(idate,dims,tstep,dataset,info,True,True)
 
  #Determine the size of the file
  info['timestep'][tstep]['fsize'] = os.stat(file).st_size
@@ -354,7 +354,7 @@ def Find_Ensemble_Number(group,timestep,idate,date):
 
  return (nt,iensemble)
 
-def Download_and_Process(date,dims,tstep,dataset,info,Reprocess_Flag):
+def Download_and_Process(date,dims,tstep,dataset,info,Reprocess_Flag,Initial_Flag):
 
  fdate = info['timestep'][tstep]['fdate']
  idate = info['timestep'][tstep]['idate']
@@ -429,11 +429,11 @@ def Download_and_Process(date,dims,tstep,dataset,info,Reprocess_Flag):
   return info
 
  #If reprocessing, don't redo monthly and yearly if you don't have to...
- #if Reprocess_Flag == True and os.path.exists(file) == True:
- # if tstep == "MONTHLY" and real_date.day != 1:
- #  return
- # if tstep == "YEARLY" and real_date.month != 1 and real_date.day != 1:
- #  return
+ if Reprocess_Flag == True and os.path.exists(file) == True and Initial_Flag == False:
+  if tstep == "MONTHLY" and real_date.day != 1:
+   return info
+  if tstep == "YEARLY" and (real_date.month + real_date.day) != 2:
+   return info
 
  print_info_to_command_line('Dataset: %s Timestep: %s (Downloading and Processing data)' % (dataset,tstep))
 
@@ -789,7 +789,7 @@ def Create_Image(file,data,cmap,levels,norm,cflag,type):
  
  return
 
-def Extract_Gridded_Data(dataset,tstep,idate,fdate,info,open_type,ga):
+def Extract_Gridded_Data(dataset,tstep,idate,fdate,info,open_type,ga,idecade):
 
  idate_dataset = info['timestep'][tstep]['idate']
  fdate_dataset = info['timestep'][tstep]['fdate']
@@ -826,7 +826,7 @@ def Extract_Gridded_Data(dataset,tstep,idate,fdate,info,open_type,ga):
  #variables = vars_file
 
  #Define current time step
- idate_tmp = datetime.datetime(idate.year,1,1)
+ idate_tmp = datetime.datetime(idecade,1,1)
  if idate_tmp < idate_dataset:
   idate_tmp = idate_dataset
  if tstep == "DAILY":
@@ -905,7 +905,7 @@ def Create_and_Update_Point_Data(idate,fdate,info,nthreads):
      open_type = 'sdfopen'
     else:
      open_type = 'xdfopen'
-    TEMP = Extract_Gridded_Data(dataset,tstep,idate,fdate,info[dataset],open_type,ga)
+    TEMP = Extract_Gridded_Data(dataset,tstep,idate,fdate,info[dataset],open_type,ga,idecade)
     if TEMP != None:
      GRID_DATA[tstep][dataset] = TEMP
  count = 0

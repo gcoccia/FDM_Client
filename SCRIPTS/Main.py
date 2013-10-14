@@ -46,7 +46,7 @@ cl.Create_Mask(dims,True)
 for dataset in datasets:
  for tstep in datasets[dataset]['timestep']:
   (datasets[dataset],idate,fdate) = cl.Determine_Dataset_Boundaries(dataset,tstep,datasets[dataset],dims,idate,fdate)
-idate = fdate - datetime.timedelta(days=15)
+idate = fdate - datetime.timedelta(days=30)
 #idate = datetime.datetime(2000,1,1)
 
 #Download all the requested data
@@ -63,7 +63,7 @@ while date <= fdate:
   for tstep in datasets[dataset]['timestep']:
 
    #Download and process the data
-   datasets[dataset] = cl.Download_and_Process(date,dims,tstep,dataset,datasets[dataset],False)
+   datasets[dataset] = cl.Download_and_Process(date,dims,tstep,dataset,datasets[dataset],False,False)
  date = date + dt
 
 #Preparing all the images
@@ -76,7 +76,7 @@ while date <= fdate:
   print date
 
   #Create Images
-  p = mp.Process(target=Create_Images_All,args=(date,dims,datasets,True))
+  p = mp.Process(target=Create_Images_All,args=(date,dims,datasets,False))
   p.start()
   process.append(p)
   date = date + dt
