@@ -201,9 +201,10 @@ def Setup_Routines(date):
  Check_and_Make_Directory(dir)
 
  #Setup the decadal directory
- if date.year % 10 == 0:
-  dir = "../DATA_CELL/%04d" % (date.year)
-  Check_and_Make_Directory(dir)
+ dir = "../DATA_CELL/%04d" % (10*np.floor(date.year/10.0))
+ #if date.year % 10 == 0:
+ # dir = "../DATA_CELL/%04d" % (date.year)
+ Check_and_Make_Directory(dir)
 
  #Setup the yearly directory
  dir = "../DATA_GRID/%04d" % (date.year)
@@ -304,12 +305,14 @@ def Create_Mask(dims,Reprocess_Flag):
  http_file2 = 'http://stream.princeton.edu:9090/dods/AFRICAN_WATER_CYCLE_MONITOR/MASK_200mm'
  http_file3 = 'http://stream.princeton.edu:9090/dods/AFRICAN_WATER_CYCLE_MONITOR/MASK_Stream'
  http_file4 = 'http://stream.princeton.edu:9090/dods/AFRICAN_WATER_CYCLE_MONITOR/MASK_100mm'
+ http_file5 = 'http://stream.princeton.edu:9090/dods/AFRICAN_WATER_CYCLE_MONITOR/PREC_ANNUAL'
 
  #Open file
  ga("sdfopen %s" % http_file1)
  ga("sdfopen %s" % http_file2)
  ga("sdfopen %s" % http_file3)
  ga("sdfopen %s" % http_file4)
+ ga("sdfopen %s" % http_file5)
   
  #Set grads region
  ga("set lat %f %f" % (dims['minlat'],dims['maxlat']))
@@ -320,6 +323,7 @@ def Create_Mask(dims,Reprocess_Flag):
  Grads_Regrid('mask.2','mask2',dims)
  Grads_Regrid('const(maskso.3(t=1),1)','mask3',dims)
  Grads_Regrid('mask.4','mask4',dims)
+ #REGRID AND MASK HERE
 
  #Write to file
  fp = Create_NETCDF_File(dims,file,['mask','mask200','maskSO','mask100'],['mask','mask200','maskSO','mask100'],datetime.datetime(1900,1,1),'days',1)
