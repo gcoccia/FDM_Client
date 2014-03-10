@@ -1,7 +1,8 @@
 1. Copy settings.xml.ref to settings.xml and adjust the dimensions and variables
-2. wget the libraries folder from http://stream.princeton.edu/ADM/LIBRARIES 
-3. Run python Main.py to determine the libraries that are missing
-4. Setup the a soft link from /var/www/html to the main directory
-5. Clone the webpage
-6. Insert the monitor's email information into .htpasswd.ref and copy to .htpasswd
+2. Retrieve the compressed libraries file at http://stream.princeton.edu/AWCM/LIBRARIES_DOWNLOAD.tar.gz
+3. Decompress the library using tar -xvzf LIBRARIES_DOWNLOAD and rename the directory as LIBRARIES
+4. Run python Main.py to determine the libraries that are missing
+5. Setup the a soft link from /var/www/html to the main directory
+6. Clone the webpage
+7. Insert the monitor's email information into .htpasswd.ref and copy to .htpasswd
 

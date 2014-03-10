@@ -40,7 +40,7 @@ nthreads = 5
 idate = datetime.datetime(2013,1,1)
 fdate = datetime.datetime(2013,1,1)
 cl.Setup_Routines(idate)
-cl.Create_Mask(dims,True)
+dims = cl.Create_Mask(dims,True)
 
 #Determine the new dataset boundaries
 for dataset in datasets:

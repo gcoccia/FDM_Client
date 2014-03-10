@@ -6,6 +6,7 @@ import os
 import datetime
 import grads
 import numpy as np
+import scipy.stats
 from mpl_toolkits.basemap import Basemap,cm
 import time
 import netCDF4 as netcdf
@@ -84,6 +85,8 @@ def Read_and_Process_Main_Info():
  dims['minlon'] = float(root.find('dimensions').find('minlon').text)
  dims['nlat'] = int(root.find('dimensions').find('nlat').text)
  dims['nlon'] = int(root.find('dimensions').find('nlon').text)
+ dims['minprec'] = float(root.find('dimensions').find('minprec').text)
+ dims['minso'] = float(root.find('dimensions').find('minso').text)
  dims['maxlat'] = dims['minlat'] + dims['res']*(dims['nlat']-1)
  dims['maxlon'] = dims['minlon'] + dims['res']*(dims['nlon']-1)
 
@@ -240,9 +243,14 @@ def gradstime2datetime(str):
 
  return date
 
-def Grads_Regrid(var_in,var_out,dims):
+def Grads_Regrid(var_in,var_out,dims,type):
 
- ga("%s = re(%s,%d,linear,%f,%f,%d,linear,%f,%f)" % (var_out,var_in,dims['nlon'],dims['minlon'],dims['res'],dims['nlat'],dims['minlat'],dims['res']))
+ if type == 'ba':
+  ga("%s = smth9(re(%s,%d,linear,%f,%f,%d,linear,%f,%f,ba))" % (var_out,var_in,dims['nlon'],dims['minlon'],dims['res'],dims['nlat'],dims['minlat'],dims['res']))
+ if type == 'vt':
+  ga("%s = re(%s,%d,linear,%f,%f,%d,linear,%f,%f,vt,0,0)" % (var_out,var_in,dims['nlon'],dims['minlon'],dims['res'],dims['nlat'],dims['minlat'],dims['res']))
+ if type == 'bl':
+  ga("%s = re(%s,%d,linear,%f,%f,%d,linear,%f,%f,bl)" % (var_out,var_in,dims['nlon'],dims['minlon'],dims['res'],dims['nlat'],dims['minlat'],dims['res']))
 
  return
 
@@ -306,6 +314,8 @@ def Create_Mask(dims,Reprocess_Flag):
  http_file3 = 'http://stream.princeton.edu:9090/dods/AFRICAN_WATER_CYCLE_MONITOR/MASK_Stream'
  http_file4 = 'http://stream.princeton.edu:9090/dods/AFRICAN_WATER_CYCLE_MONITOR/MASK_100mm'
  http_file5 = 'http://stream.princeton.edu:9090/dods/AFRICAN_WATER_CYCLE_MONITOR/PREC_ANNUAL'
+ http_file6 = 'http://stream.princeton.edu:9090/dods/AFRICAN_WATER_CYCLE_MONITOR/STREAM_ORDER'
+ http_file7 = 'http://stream.princeton.edu:9090/dods/AFRICAN_WATER_CYCLE_MONITOR/FLOW_ANNUAL'
 
  #Open file
  ga("sdfopen %s" % http_file1)
@@ -313,33 +323,52 @@ def Create_Mask(dims,Reprocess_Flag):
  ga("sdfopen %s" % http_file3)
  ga("sdfopen %s" % http_file4)
  ga("sdfopen %s" % http_file5)
+ ga("sdfopen %s" % http_file6)
+ ga("sdfopen %s" % http_file7)
   
  #Set grads region
  ga("set lat %f %f" % (dims['minlat'],dims['maxlat']))
  ga("set lon %f %f" % (dims['minlon'],dims['maxlon']))
 
  #Regrid data
- Grads_Regrid('mask.1','mask1',dims)
- Grads_Regrid('mask.2','mask2',dims)
- Grads_Regrid('const(maskso.3(t=1),1)','mask3',dims)
- Grads_Regrid('mask.4','mask4',dims)
- #REGRID AND MASK HERE
+ Grads_Regrid('mask.1','mask1',dims,'vt')
+ Grads_Regrid('mask.2','mask2',dims,'vt')
+ Grads_Regrid('const(maskso.3(t=1),1)','mask3',dims,'vt')
+ Grads_Regrid('mask.4','mask4',dims,'vt')
+ Grads_Regrid('precmean.5','pmean',dims,'vt')
+ Grads_Regrid('so.6(t=1)','so',dims,'vt')
+ ga("mask5 = const(maskout(maskout(pmean,pmean-%f),mask1),1)" % dims['minprec'])
+ #ga("maskso = maskout(maskout(so,so-%f),mask5)" % dims['minso'])
+ ga("maskso = const(maskout(maskout(so,so-%f),mask4),-9.99e+08, -u))" % dims['minso'])
+
+ #Determine the flow to display
+ flwmean = np.ma.getdata(ga.exp("flwmean.7(t=1)"))
+ flwmean = flwmean[flwmean >= 0]
+ pcts = np.linspace(0,100,20)
+ flwvals = []
+ for pct in pcts:
+  flwvals.append(scipy.stats.scoreatpercentile(flwmean,pct))
+ dims['flwvals'] = np.unique(np.floor(np.array(flwvals)))
 
  #Write to file
- fp = Create_NETCDF_File(dims,file,['mask','mask200','maskSO','mask100'],['mask','mask200','maskSO','mask100'],datetime.datetime(1900,1,1),'days',1)
+ fp = Create_NETCDF_File(dims,file,['mask','mask200','maskSO','mask100','maskcs'],['mask','mask200','maskSO','mask100','maskcs'],datetime.datetime(1900,1,1),'days',1)
  fp.variables['mask'][0] = np.ma.getdata(ga.exp("mask1"))
  fp.variables['mask200'][0] = np.ma.getdata(ga.exp("mask2"))
- fp.variables['maskSO'][0] = np.ma.getdata(ga.exp("mask3"))
+ fp.variables['maskSO'][0] = np.ma.getdata(ga.exp("maskso"))
  fp.variables['mask100'][0] = np.ma.getdata(ga.exp("mask4"))
+ fp.variables['maskcs'][0] = np.ma.getdata(ga.exp("mask5"))
 
  #Close files 
+ ga("close 7")
+ ga("close 6")
+ ga("close 5")
  ga("close 4")
  ga("close 3")
  ga("close 2")
  ga("close 1")
  fp.close()
 
- return
+ return dims
 
 def Find_Ensemble_Number(group,timestep,idate,date):
 
@@ -468,7 +497,10 @@ def Download_and_Process(date,dims,tstep,dataset,info,Reprocess_Flag,Initial_Fla
   timestamp = datetime2gradstime(date + t*dt)
   ga("set time %s" % timestamp)
   for var in vars:
-   Grads_Regrid(var,'data',dims)
+   if var == 'flw_pct' or var == 'flw':
+    Grads_Regrid(var,'data',dims,'vt')
+   else:
+    Grads_Regrid(var,'data',dims,'ba')
    data = ga.exp('data')
    if info['group'] == "Forecast" and var == "prec" and tstep == "MONTHLY":
     data = 30.5*data #NEED TO CHANGE.. NOT CORRECT
@@ -571,7 +603,7 @@ def Create_Images(date,dims,dataset,timestep,info,Reprocess_Flag):
    if var in ["spi1","spi3","spi6","spi12","vcpct","vc1","vc2","pct30day"]:
     ga("data = smth9(data)")
    data = ga.exp("data")
-   (cmap,levels,norm) = Define_Colormap(var,timestep)
+   (cmap,levels,norm) = Define_Colormap(var,timestep,dims)
    cflag = True
    if var in ['flw','flw_pct']:
     cflag = False
@@ -594,7 +626,7 @@ def Create_Images(date,dims,dataset,timestep,info,Reprocess_Flag):
    if var in ["spi1","spi3","spi6","spi12","vcpct","vc1","vc2","pct30day"]:
     ga("data = smth9(data)")
    data = ga.exp("data")
-   (cmap,levels,norm) = Define_Colormap(var,timestep)
+   (cmap,levels,norm) = Define_Colormap(var,timestep,dims)
    cflag = True
    if var in ['flw','flw_pct']:
     cflag = False
@@ -643,7 +675,7 @@ def Create_Colorbar(file,cmap,norm,var,levels,Reprocess_Flag):
 
  return
 
-def Define_Colormap(var,timestep):
+def Define_Colormap(var,timestep,dims):
 
  #SPI
  if var in ["spi1","spi3","spi6","spi12"]:
@@ -702,7 +734,8 @@ def Define_Colormap(var,timestep):
  #Streamflow
  if var in ["flw"]:
   #levels = [0,5000,10000,15000,20000,25000,30000,35000,40000]
-  levels = [0,100,200,300,400,500,1000,1500,2000,2500,5000,10000,20000,30000]
+  #levels = [0,100,200,300,400,500,1000,1500,2000,2500,5000,10000,20000,30000]
+  levels =  dims['flwvals']#[   0. ,   1.,    2.,    3.,    4.,    8. ,  16.,  137.] #CAREFUL!
   cmap = plt.cm.jet_r
   norm = mpl.colors.BoundaryNorm(levels,ncolors=256, clip=False)
 

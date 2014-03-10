@@ -60,22 +60,22 @@
   </group>
 
   <group divtitle="Drought" name="Indices">
-    <datatype mask="mask200" name="spi1" title="SPI (1 month)" units="">
+    <datatype mask="maskcs" name="spi1" title="SPI (1 month)" units="">
       <dataset ftime="2013/10/08" itime="1950/01/01" name="SPI" title="Derived Meteorology" ts="DMY" />
     </datatype>
-    <datatype mask="mask200" name="spi3" title="SPI (3 month)" units="">
+    <datatype mask="maskcs" name="spi3" title="SPI (3 month)" units="">
       <dataset ftime="2013/10/08" itime="1950/01/01" name="SPI" title="Derived Meteorology" ts="DMY" />
     </datatype>
-    <datatype mask="mask200" name="spi6" title="SPI (6 month)" units="">
+    <datatype mask="maskcs" name="spi6" title="SPI (6 month)" units="">
       <dataset ftime="2013/10/08" itime="1950/01/01" name="SPI" title="Derived Meteorology" ts="DMY" />
     </datatype>
-    <datatype mask="mask200" name="spi12" title="SPI (12 month)" units="">
+    <datatype mask="maskcs" name="spi12" title="SPI (12 month)" units="">
       <dataset ftime="2013/10/08" itime="1950/01/01" name="SPI" title="Derived Meteorology" ts="DMY" />
     </datatype>
-    <datatype mask="mask200" name="vcpct" title="Drought Index (%)" units="%">
+    <datatype mask="maskcs" name="vcpct" title="Drought Index (%)" units="%">
       <dataset ftime="2013/10/08" itime="1950/01/01" name="VIC_DERIVED" title="Derived Hydrology" ts="DMY" />
     </datatype>
-    <datatype mask="mask200" name="pct30day" title="NDVI Percentile (30-day moving average)" units="%">
+    <datatype mask="maskcs" name="pct30day" title="NDVI Percentile (30-day moving average)" units="%">
       <dataset ftime="2013/09/27" itime="2003/01/01" name="MOD09_NDVI_MA_DERIVED" title="MODIS" ts="DMY" />
     </datatype>
     <datatype mask="maskSO" name="flw_pct" title="Streamflow Percentile (%)" units="%">
@@ -109,7 +109,7 @@
    </group>
 
    <group divtitle="Forecast" name="Forecast">
-    <datatype mask="mask200" name="spi1" title="SPI (1 month)" units="">
+    <datatype mask="maskcs" name="spi1" title="SPI (1 month)" units="">
      <dataset ftime="2013/09/01" itime="2013/09/01" name="CMC1-CanCM3" title="CMC1-CanCM3" ts="M" />
      <dataset ftime="2013/09/01" itime="2013/09/01" name="GFDL-CM2p1-aer04" title="GFDL-CM2p1-aer04" ts="M" />
      <dataset ftime="2013/09/01" itime="2013/09/01" name="COLA-RSMAS-CCSM3" title="COLA-RSMAS-CCSM3" ts="M" />
@@ -119,7 +119,7 @@
      <dataset ftime="2013/09/01" itime="2013/09/01" name="MultiModel" title="Multi Model Mean" ts="M" />
      <dataset ftime="2013/10/08" itime="2013/10/08" name="GFS_7DAY_FORECAST" title="GFS 7-day forecast" ts="D" />
     </datatype>
-    <datatype mask="mask200" name="spi3" title="SPI (3 month)" units="">
+    <datatype mask="maskcs" name="spi3" title="SPI (3 month)" units="">
      <dataset ftime="2013/09/01" itime="2013/09/01" name="CMC1-CanCM3" title="CMC1-CanCM3" ts="M" />
      <dataset ftime="2013/09/01" itime="2013/09/01" name="GFDL-CM2p1-aer04" title="GFDL-CM2p1-aer04" ts="M" />
      <dataset ftime="2013/09/01" itime="2013/09/01" name="COLA-RSMAS-CCSM3" title="COLA-RSMAS-CCSM3" ts="M" />
@@ -129,7 +129,7 @@
      <dataset ftime="2013/09/01" itime="2013/09/01" name="MultiModel" title="Multi Model Mean" ts="M" />
      <dataset ftime="2013/10/08" itime="2013/10/08" name="GFS_7DAY_FORECAST" title="GFS 7-day forecast" ts="D" />
     </datatype>
-    <datatype mask="mask200" name="spi6" title="SPI (6 month)" units="">
+    <datatype mask="maskcs" name="spi6" title="SPI (6 month)" units="">
      <dataset ftime="2013/09/01" itime="2013/09/01" name="CMC1-CanCM3" title="CMC1-CanCM3" ts="M" />
      <dataset ftime="2013/09/01" itime="2013/09/01" name="GFDL-CM2p1-aer04" title="GFDL-CM2p1-aer04" ts="M" />
      <dataset ftime="2013/09/01" itime="2013/09/01" name="COLA-RSMAS-CCSM3" title="COLA-RSMAS-CCSM3" ts="M" />
@@ -139,7 +139,7 @@
      <dataset ftime="2013/09/01" itime="2013/09/01" name="MultiModel" title="Multi Model Mean" ts="M" />
      <dataset ftime="2013/10/08" itime="2013/10/08" name="GFS_7DAY_FORECAST" title="GFS 7-day forecast" ts="D" />
     </datatype>
-    <datatype mask="mask200" name="spi12" title="SPI (12 month)" units="">
+    <datatype mask="maskcs" name="spi12" title="SPI (12 month)" units="">
      <dataset ftime="2013/09/01" itime="2013/09/01" name="CMC1-CanCM3" title="CMC1-CanCM3" ts="M" />
      <dataset ftime="2013/09/01" itime="2013/09/01" name="GFDL-CM2p1-aer04" title="GFDL-CM2p1-aer04" ts="M" />
      <dataset ftime="2013/09/01" itime="2013/09/01" name="COLA-RSMAS-CCSM3" title="COLA-RSMAS-CCSM3" ts="M" />
@@ -210,7 +210,7 @@
     <datatype mask="mask" name="baseflow" title="Baseflow (mm/day)" units="mm">
      <dataset ftime="2013/10/08" itime="2013/10/08" name="GFS_7DAY_FORECAST" title="GFS 7-day forecast" ts="D" />
     </datatype>
-    <datatype mask="mask200" name="vcpct" title="Drought Index (%)" units="%">
+    <datatype mask="maskcs" name="vcpct" title="Drought Index (%)" units="%">
      <dataset ftime="2013/10/08" itime="2013/10/08" name="GFS_7DAY_FORECAST" title="GFS 7-day forecast" ts="D" />
     </datatype>
     <datatype mask="maskSO" name="flw_pct" title="Streamflow Percentile (%)" units="%">
