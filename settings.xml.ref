@@ -9,6 +9,8 @@
   <izoom>3</izoom>
   <centerlat>4.0</centerlat>
   <centerlon>45.0</centerlon>
+  <minprec>0.0</minprec>
+  <minso>2.0</minso>
 </dimensions>
 
 <variables>
