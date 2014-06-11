@@ -474,7 +474,17 @@ def Download_and_Process(date,dims,tstep,dataset,info,Reprocess_Flag,Initial_Fla
  http_file = "http://stream.princeton.edu:9090/dods/AFRICAN_WATER_CYCLE_MONITOR/%s/%s" % (dataset,tstep)
 
  #Open access to grads data server
- ga("sdfopen %s" % http_file)
+ connection_info = {'flag':False,'count':0,'seconds':60}
+ while connection_info['flag'] == False:
+  try:
+   ga("sdfopen %s" % http_file)
+   connection_info['flag'] = True  
+  except: 
+   print "Cannot connect to GDS server on try %d, will retry in %d seconds" % (connection_info['count']+1,connection_info['seconds'])
+   connection_info['count'] += 1
+   time.sleep(connection_info['seconds'])
+   if connection_info['count'] == 60:
+     print "Too many failed attempts, please check connection to server"
 
  #Extract basic info
  qh = ga.query("file")

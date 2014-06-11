@@ -47,7 +47,7 @@ for dataset in datasets:
  for tstep in datasets[dataset]['timestep']:
   (datasets[dataset],idate,fdate) = cl.Determine_Dataset_Boundaries(dataset,tstep,datasets[dataset],dims,idate,fdate)
 idate = fdate - datetime.timedelta(days=30)
-#idate = datetime.datetime(2000,1,1)
+idate = datetime.datetime(1950,1,1)
 
 #Download all the requested data
 date = idate
