@@ -2,15 +2,16 @@
 
 <dimensions>
   <res>0.25</res>
-  <minlat>-34.875</minlat>
-  <minlon>-18.875</minlon>
-  <nlat>292</nlat>
-  <nlon>296</nlon>
+  <minlat>-55.875</minlat>
+  <minlon>-118.375</minlon>
+  <nlat>357</nlat>
+  <nlon>357</nlon>
   <izoom>3</izoom>
-  <centerlat>4.0</centerlat>
-  <centerlon>45.0</centerlon>
+  <centerlat>-11.250</centerlat>
+  <centerlon>-73.750</centerlon>
   <minprec>0.0</minprec>
   <minso>2.0</minso>
+  <base>http://stream.princeton.edu:9090/dods/LACFDM</base>
 </dimensions>
 
 <variables>

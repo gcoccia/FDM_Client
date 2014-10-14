@@ -17,12 +17,12 @@ import multiprocessing as mp
 grads_exe = '../LIBRARIES/grads-2.0.1.oga.1/Contents/grads'
 ga = grads.GrADS(Bin=grads_exe,Window=False,Echo=False)
 
-def Determine_Dataset_Boundaries(dataset,tstep,info,dims,idate_all,fdate_all):
+def Determine_Dataset_Boundaries(dataset,tstep,info,dims,idate_all,fdate_all,http_base):
 
  print_info_to_command_line('Updating the time information for %s/%s' % (dataset,tstep))
 
  #Define the grads server root
- http_file = "http://stream.princeton.edu:9090/dods/AFRICAN_WATER_CYCLE_MONITOR/%s/%s" % (dataset,tstep)
+ http_file = http_base + "/%s/%s" % (dataset,tstep)
 
  #Open access to grads data ser
  ga("sdfopen %s" % http_file)
@@ -89,6 +89,7 @@ def Read_and_Process_Main_Info():
  dims['minso'] = float(root.find('dimensions').find('minso').text)
  dims['maxlat'] = dims['minlat'] + dims['res']*(dims['nlat']-1)
  dims['maxlon'] = dims['minlon'] + dims['res']*(dims['nlon']-1)
+ http_base = string(root.find('dimensions').find('base').text)
 
  #Pull datasets
  datasets = {}

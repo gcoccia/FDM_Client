@@ -32,7 +32,7 @@ def Create_Images_All(date,dims,datasets,Reprocess_Flag):
  return
 
 #1. Determine the dimensions
-(dims,datasets) = cl.Read_and_Process_Main_Info()
+(dims,datasets,http_base) = cl.Read_and_Process_Main_Info()
 dt = datetime.timedelta(days=1)
 
 #Prepare the mask
