@@ -302,7 +302,7 @@ def Create_NETCDF_File(dims,file,vars,vars_info,tinitial,tstep,nt):
 
  return f
 
-def Create_Mask(dims,Reprocess_Flag):
+def Create_Mask(dims,http_base,Reprocess_Flag):
 
  #Define file
  file = '../DATA_GRID/MASKS/mask.nc' 
@@ -310,13 +310,13 @@ def Create_Mask(dims,Reprocess_Flag):
   return
 
  #Define http files
- http_file1 = 'http://stream.princeton.edu:9090/dods/AFRICAN_WATER_CYCLE_MONITOR/MASK'
- http_file2 = 'http://stream.princeton.edu:9090/dods/AFRICAN_WATER_CYCLE_MONITOR/MASK_200mm'
- http_file3 = 'http://stream.princeton.edu:9090/dods/AFRICAN_WATER_CYCLE_MONITOR/MASK_Stream'
- http_file4 = 'http://stream.princeton.edu:9090/dods/AFRICAN_WATER_CYCLE_MONITOR/MASK_100mm'
- http_file5 = 'http://stream.princeton.edu:9090/dods/AFRICAN_WATER_CYCLE_MONITOR/PREC_ANNUAL'
- http_file6 = 'http://stream.princeton.edu:9090/dods/AFRICAN_WATER_CYCLE_MONITOR/STREAM_ORDER'
- http_file7 = 'http://stream.princeton.edu:9090/dods/AFRICAN_WATER_CYCLE_MONITOR/FLOW_ANNUAL'
+ http_file1 = http_base + '/MASK'
+ http_file2 = http_base + '/MASK_200mm'
+ http_file3 = http_base + '/MASK_Stream'
+ http_file4 = http_base + '/MASK_100mm'
+ http_file5 = http_base + '/PREC_ANNUAL'
+ http_file6 = http_base + '/STREAM_ORDER'
+ http_file7 = http_base + '/FLOW_ANNUAL'
 
  #Open file
  ga("sdfopen %s" % http_file1)
@@ -388,7 +388,7 @@ def Find_Ensemble_Number(group,timestep,idate,date):
 
  return (nt,iensemble)
 
-def Download_and_Process(date,dims,tstep,dataset,info,Reprocess_Flag,Initial_Flag):
+def Download_and_Process(date,dims,tstep,dataset,info,Reprocess_Flag,Initial_Flag,http_base):
 
  fdate = info['timestep'][tstep]['fdate']
  idate = info['timestep'][tstep]['idate']
@@ -472,7 +472,7 @@ def Download_and_Process(date,dims,tstep,dataset,info,Reprocess_Flag,Initial_Fla
  print_info_to_command_line('Dataset: %s Timestep: %s (Downloading and Processing data)' % (dataset,tstep))
 
  #Define the grads server root
- http_file = "http://stream.princeton.edu:9090/dods/AFRICAN_WATER_CYCLE_MONITOR/%s/%s" % (dataset,tstep)
+ http_file = http_base + "/%s/%s" % (dataset,tstep)
 
  #Open access to grads data server
  connection_info = {'flag':False,'count':0,'seconds':60}

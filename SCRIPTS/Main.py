@@ -40,7 +40,7 @@ nthreads = 5
 idate = datetime.datetime(2013,1,1)
 fdate = datetime.datetime(2013,1,1)
 cl.Setup_Routines(idate)
-dims = cl.Create_Mask(dims,True)
+dims = cl.Create_Mask(dims,http_base,True)
 
 #Determine the new dataset boundaries
 for dataset in datasets:
@@ -63,7 +63,7 @@ while date <= fdate:
   for tstep in datasets[dataset]['timestep']:
 
    #Download and process the data
-   datasets[dataset] = cl.Download_and_Process(date,dims,tstep,dataset,datasets[dataset],False,False)
+   datasets[dataset] = cl.Download_and_Process(date,dims,tstep,dataset,datasets[dataset],False,False,http_base)
  date = date + dt
 
 #Preparing all the images
