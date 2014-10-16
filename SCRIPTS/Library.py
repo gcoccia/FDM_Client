@@ -60,7 +60,7 @@ def Determine_Dataset_Boundaries(dataset,tstep,info,dims,idate_all,fdate_all,htt
   file = '../DATA_GRID/%04d/%s_%04d_yearly.nc' % (idate.year,dataset,idate.year)
  if os.path.exists(file) == False:
   Setup_Routines(idate)
-  Download_and_Process(idate,dims,tstep,dataset,info,True,True)
+  Download_and_Process(idate,dims,tstep,dataset,info,True,True,http_base)
 
  #Determine the size of the file
  info['timestep'][tstep]['fsize'] = os.stat(file).st_size
@@ -89,7 +89,7 @@ def Read_and_Process_Main_Info():
  dims['minso'] = float(root.find('dimensions').find('minso').text)
  dims['maxlat'] = dims['minlat'] + dims['res']*(dims['nlat']-1)
  dims['maxlon'] = dims['minlon'] + dims['res']*(dims['nlon']-1)
- http_base = string(root.find('dimensions').find('base').text)
+ http_base = root.find('dimensions').find('base').text
 
  #Pull datasets
  datasets = {}
@@ -131,7 +131,7 @@ def Read_and_Process_Main_Info():
     datasets[dataset_name]['variables'][variable_name] = {}
     datasets[dataset_name]['variables'][variable_name]['units'] = variable_units
     datasets[dataset_name]['variables'][variable_name]['mask'] = variable_mask
- return (dims,datasets)
+ return (dims,datasets,http_base)
 
 def Update_XML_File(datasets):
  print_info_to_command_line('Updating the XML file')
@@ -312,11 +312,10 @@ def Create_Mask(dims,http_base,Reprocess_Flag):
  #Define http files
  http_file1 = http_base + '/MASK'
  http_file2 = http_base + '/MASK_200mm'
- http_file3 = http_base + '/MASK_Stream'
- http_file4 = http_base + '/MASK_100mm'
- http_file5 = http_base + '/PREC_ANNUAL'
- http_file6 = http_base + '/STREAM_ORDER'
- http_file7 = http_base + '/FLOW_ANNUAL'
+ http_file3 = http_base + '/MASK_100mm'
+ http_file4 = http_base + '/PREC_ANNUAL'
+ http_file5 = http_base + '/STREAM_ORDER'
+ http_file6 = http_base + '/FLOW_ANNUAL'
 
  #Open file
  ga("sdfopen %s" % http_file1)
@@ -325,7 +324,6 @@ def Create_Mask(dims,http_base,Reprocess_Flag):
  ga("sdfopen %s" % http_file4)
  ga("sdfopen %s" % http_file5)
  ga("sdfopen %s" % http_file6)
- ga("sdfopen %s" % http_file7)
   
  #Set grads region
  ga("set lat %f %f" % (dims['minlat'],dims['maxlat']))
@@ -334,16 +332,15 @@ def Create_Mask(dims,http_base,Reprocess_Flag):
  #Regrid data
  Grads_Regrid('mask.1','mask1',dims,'vt')
  Grads_Regrid('mask.2','mask2',dims,'vt')
- Grads_Regrid('const(maskso.3(t=1),1)','mask3',dims,'vt')
- Grads_Regrid('mask.4','mask4',dims,'vt')
- Grads_Regrid('precmean.5','pmean',dims,'vt')
- Grads_Regrid('so.6(t=1)','so',dims,'vt')
+ Grads_Regrid('mask.3','mask3',dims,'vt')
+ Grads_Regrid('precmean.4','pmean',dims,'vt')
+ Grads_Regrid('so.5(t=1)','so',dims,'vt')
  ga("mask5 = const(maskout(maskout(pmean,pmean-%f),mask1),1)" % dims['minprec'])
  #ga("maskso = maskout(maskout(so,so-%f),mask5)" % dims['minso'])
- ga("maskso = const(maskout(maskout(so,so-%f),mask4),-9.99e+08, -u))" % dims['minso'])
+ ga("maskso = const(maskout(maskout(so,so-%f),mask3),-9.99e+08, -u))" % dims['minso'])
 
  #Determine the flow to display
- flwmean = np.ma.getdata(ga.exp("flwmean.7(t=1)"))
+ flwmean = np.ma.getdata(ga.exp("flwmean.6(t=1)"))
  flwmean = flwmean[flwmean >= 0]
  pcts = np.linspace(0,100,20)
  flwvals = []
@@ -356,11 +353,10 @@ def Create_Mask(dims,http_base,Reprocess_Flag):
  fp.variables['mask'][0] = np.ma.getdata(ga.exp("mask1"))
  fp.variables['mask200'][0] = np.ma.getdata(ga.exp("mask2"))
  fp.variables['maskSO'][0] = np.ma.getdata(ga.exp("maskso"))
- fp.variables['mask100'][0] = np.ma.getdata(ga.exp("mask4"))
+ fp.variables['mask100'][0] = np.ma.getdata(ga.exp("mask3"))
  fp.variables['maskcs'][0] = np.ma.getdata(ga.exp("mask5"))
 
  #Close files 
- ga("close 7")
  ga("close 6")
  ga("close 5")
  ga("close 4")
