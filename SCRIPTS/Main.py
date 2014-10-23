@@ -36,7 +36,7 @@ def Create_Images_All(date,dims,datasets,Reprocess_Flag):
 dt = datetime.timedelta(days=1)
 
 #Prepare the mask
-nthreads = 5
+nthreads = 16
 idate = datetime.datetime(2013,1,1)
 fdate = datetime.datetime(2013,1,1)
 cl.Setup_Routines(idate)
@@ -48,8 +48,8 @@ for dataset in datasets:
   (datasets[dataset],idate,fdate) = cl.Determine_Dataset_Boundaries(dataset,tstep,datasets[dataset],dims,idate,fdate,http_base)
 #idate = fdate - datetime.timedelta(days=30)
 idate = datetime.datetime(1950,1,1)
-fdate = datetime.datetime(1950,3,1)
-Reprocess_Flag = True
+#fdate = datetime.datetime(1950,3,1)
+Reprocess_Flag = False
 #Download all the requested data
 date = idate
 while date <= fdate:
@@ -64,7 +64,7 @@ while date <= fdate:
   for tstep in datasets[dataset]['timestep']:
 
    #Download and process the data
-   datasets[dataset] = cl.Download_and_Process(date,dims,tstep,dataset,datasets[dataset],Reprocess_Flag,False,http_base)
+   datasets[dataset] = cl.Download_and_Process(date,dims,tstep,dataset,datasets[dataset],Reprocess_Flag,True,http_base)
  date = date + dt
 
 #Preparing all the images

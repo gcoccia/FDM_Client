@@ -342,7 +342,8 @@ def Create_Mask(dims,http_base,Reprocess_Flag):
  #Determine the flow to display
  flwmean = np.ma.getdata(ga.exp("flwmean.6(t=1)"))
  flwmean = flwmean[flwmean >= 0]
- pcts = np.linspace(0,100,20)
+ #pcts = np.linspace(0,100,15)
+ pcts = [0,1,5,10,15,20,30,50,70,80,85,90,95,99,100] 
  flwvals = []
  for pct in pcts:
   flwvals.append(scipy.stats.scoreatpercentile(flwmean,pct))
