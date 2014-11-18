@@ -104,7 +104,8 @@ You have now installed all of the necessary components of the LAFDM client versi
 
 Install LAFDM Web Interface:
 Ensure that you are currently in the LAFDM/ directory created in the previous section. Type the following command as the monitor user to download the web interface.
-cd 
+cd LAFDM/
+git clone https://github.com/ckfisher/ADM_ML.git
 mv ADM_ML WEBPAGE
 
 Set up the web interface by entering the following commands (as the root user):
