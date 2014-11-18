@@ -1,0 +1,144 @@
+Princeton Flood and Drought Monitor Installation:
+
+Note: This process will require a reliable internet connection, as many of the necessary libraries and files must be downloaded from the internet. 
+
+First, it is ideal to do a full wipe of the system and to then install the desktop version of Centos 6.5 on the computer. The disk image necessary for this can be found at (http://www.centos.org/download/). Once you have burned the disk, follow the install instructions to install the basic desktop version of the operating system. Be sure to record your root password and other user accounts created.
+
+From the terminal as root user type the following command:
+yum install git
+
+Now create the monitor user account (where userid is the desired name, we suggest the name monitor) :
+ useradd userid
+ passwd userid
+
+Log out of the current session and login as the new monitor user
+Open the terminal and ensure that you are in the users home directory
+
+Download the current client version of the monitor (type the following command):
+git clone https://github.com/ckfisher/FDM_Client.git  
+mv FDM_Client/ to a new directory for the name of the system (For this setup it will be LAFDM/)
+
+Alter the initial settings and set up the spatial boundaries (type the following commands):
+cd LAFDM/
+cp settings.xml.ref  settings.xml
+Edit the settings.xml file to the desired latitude/longitude bounds and the desired resolution for the images (currently better to leave this as 0.25)
+
+Download the necessary library files(type the following commands):
+wget http://stream.princeton.edu/AWCM/LIBRARIES_DOWNLOAD.tar.gz
+tar -xvzf LIBRARIES_DOWNLOAD.tar.gz
+mv LIBRARIES_DOWNLOAD LIBRARIES (ensure that the LIBRARIES folder is in the LAFDM directory)
+
+Install necessary libraries from internet in the given order(type the following commands as root user):
+Note: The desired version of each library is given after the command for reference; however, the version provided by yum for most of these libraries should be fine.
+	
+yum install python-setuptools (desired version: 0.6.10-3.el6)
+yum install python-devel (desired version: 2.6.6-52.el6)
+easy_install pip (desired version: 1.5.4)
+yum install python-matplotlib (desired version: 0.99.1.2)
+yum install gcc-c++ (desired version: 4.4.7-4)
+
+Add the Epel RPM to the system using these commands:
+wget http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
+wget http://rpms.famillecollet.com/enterprise/remi-release-6.rpm
+rpm -Uvh remi-release-6*.rpm epel-release-6*.rpm
+
+yum install netcdf-devel (desired version: 4.1.1-3)
+
+Install the version of Numpy (1.7.1) given in the LIBRARIES folder (type the following commands as root user): 
+cd LIBRARIES/
+tar -xzvf numpy-1.7.1.tar.gz
+cd numpy-1.7.1/
+python setup.py build
+python setup.py install
+
+Continue installing necessary libraries from internet in the given order(type the following commands as root user):
+yum install netcdf4-python (desired version: 1.0.2-1)
+yum install blas-devel (desired version: 3.2.1-4)
+yum install lapack-devel (desired version: 3.2.1-4)
+pip install scipy
+pip install tornado (desired version: 3.2)
+yum install libpng-devel
+yum install freetype-devel
+yum install libXaw
+yum  install ImageMagick (desired version: 6.5.4.7.7)
+yum install php
+yum install php-mbstring
+
+Install the libraries given in the LIBRARIES folder (type the following commands as root user):
+tar -xzvf matplotlib-1.3.0.tar.gz
+cd matplotlib-1.3.0/
+python setup.py build
+python setup.py install
+cd ..
+tar -xzvf basemap-1.0.6.tar.gz
+cd /basemap-1.0.6/geos-3.3.3/
+./configure
+make
+make install
+You must now add “/usr/local/lib” to a file in /etc/ld.so.conf.d. This can be done in a number of ways (for examples see http://linux.101hacks.com/unix/ldconfig/)
+ldconfig
+cd ..
+python setup.py build
+python setup.py install 
+cd .. 
+tar -xzvf grads-2.0.1.oga.1…..tar.gz
+tar -xzvf pygrads-1.1.8.tar.gz
+cd pygrads-1.1.8/ 
+python setup.py build 
+python setup.py install
+cd .. 
+tar -xzvf python-dateutil-2.1.tar.gz
+cd python-dateutil-2.1/
+python setup.py build 
+python setup.py install
+cd .. 
+git clone https://github.com/git/git.git
+cd git/
+make configure
+./configure
+make 
+make install
+
+You have now installed all of the necessary components of the LAFDM client version. The next step will be to install the web interface.
+
+Install LAFDM Web Interface:
+Ensure that you are currently in the LAFDM/ directory created in the previous section. Type the following command as the monitor user to download the web interface.
+cd 
+mv ADM_ML WEBPAGE
+
+Set up the web interface by entering the following commands (as the root user):
+/etc/init.d/iptables stop 	(turn off iptables)
+chkconfig iptables off 		(disable iptables)
+echo 0 >/selinux/enforce 	(turn off SElinux)
+vi /etc/selinux/config 		(disable SElinux)
+Set the line SELINUX=enforcing to SELINUX=permissive
+cd var/www/html
+ln -s /home/monitor/LAFDM LAFDM
+service httpd start
+
+You must now ensure that the file permissions are set up correctly by entering the following command as the monitor user:
+chmod 755 /home/monitor 
+ls -la /home/ (do this to ensure that the permissions allow the user directory to be accessed by all)
+
+To setup the email function of the web interface: 
+In the WEBSITE directory, copy the .htpaswd.ref file to .htpasswd
+Edit this new file by adding an email address and password in the empty quotes
+We have found that a new gmail account works best
+
+The web interface should now be installed and viewable from a web browser using the ip address of your computer. You can then use your own DNS to make this viewable from outside of your network.
+
+Process Historical and Current Data:
+The following process will run the monitor to download all of the historical data and setup up the necessary files for the web interface to display the data correctly. Type the commands in the terminal as the monitor user. 
+cd LAFDM/SCRIPTS
+The next step will take days… so please be patient
+Open Main.py and got to line 50
+Uncomment this line and ensure that it says the following: 
+idate = datetime.datetime(1950,1,1)
+Save the file and then run it using the command: python Main.py
+The script will now download and process all of the necessary data. If errors occur, there may be libraries that were not installed correctly. Revisit the above procedures to ensure that everything was done correctly.
+Once the script has finished, comment line 50 again.
+
+The final step is to schedule the script to run in the background to download and process new data. Type the following commands as the monitor user:
+crontab -e 
+Add the following text on a new line (filling in the correct path for the files) and then save the file:
+“00 06 * * * cd PathTo/SCRIPTS && python PathTo/SCRIPTS/Main.py >& PathTo/SCRIPTS/cronlog.txt”
