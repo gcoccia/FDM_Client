@@ -510,8 +510,8 @@ def Download_and_Process(date,dims,tstep,dataset,info,Reprocess_Flag,Initial_Fla
    else:
     Grads_Regrid(var,'data',dims,'ba')
    data = ga.exp('data')
-   if info['group'] == "Forecast" and var == "prec" and tstep == "MONTHLY":
-    data = 30.5*data #NEED TO CHANGE.. NOT CORRECT
+   #if info['group'] == "Forecast" and var == "prec" and tstep == "MONTHLY":
+   # data = 30.5*data #NEED TO CHANGE.. NOT CORRECT
    fp.variables[var][t] = data
 
  #Close files 
@@ -672,9 +672,9 @@ def Create_Colorbar(file,cmap,norm,var,levels,Reprocess_Flag):
  if var in ["ndvi30"]:
   levels = [0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0]
  if var in ['t2ano']:
-  levels = [-1.5,-1.0,-0.5,0,0.5,1.0,1.5]
+  levels = [-4.0,-2.0,-1.0,0,1.0,2.0,4.0]
  if var in ['t2m']:
-  levels = [0,5,10,15,20,25,30,35,40]
+  levels = [270,275,280,285,290,295,300,305,310]
  fig = plt.figure(figsize=(8,0.5))
  ax = fig.add_axes([0.05, 0.4, 0.9, 0.8])
  cb = mpl.colorbar.ColorbarBase(ax,cmap=cmap,norm=norm,orientation='horizontal',ticks=levels)
@@ -709,9 +709,9 @@ def Define_Colormap(var,timestep,dims):
   if var == "tmin":
    levels = np.linspace(265,300,40)
   if var == "t2ano":
-   levels = np.linspace(-1.5,1.5,40)
+   levels = np.linspace(-4,4,40)
   if var == "t2m":
-   levels = np.linspace(0,40,40)
+   levels = np.linspace(270,310,40)
   cmap = plt.cm.RdBu_r
   norm = mpl.colors.Normalize(vmin=np.min(levels),vmax=np.max(levels), clip=False)
 
