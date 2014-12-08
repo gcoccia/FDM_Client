@@ -313,17 +313,17 @@ def Create_Mask(dims,http_base,Reprocess_Flag):
  http_file1 = http_base + '/MASK'
  http_file2 = http_base + '/MASK_200mm'
  http_file3 = http_base + '/MASK_100mm'
- http_file4 = http_base + '/PREC_ANNUAL'
- http_file5 = http_base + '/STREAM_ORDER'
- http_file6 = http_base + '/FLOW_ANNUAL'
+ #http_file4 = http_base + '/PREC_ANNUAL'	# HEXG
+ #http_file5 = http_base + '/STREAM_ORDER'	# HEXG
+ #http_file6 = http_base + '/FLOW_ANNUAL'	# HEXG
 
  #Open file
  ga("sdfopen %s" % http_file1)
  ga("sdfopen %s" % http_file2)
  ga("sdfopen %s" % http_file3)
- ga("sdfopen %s" % http_file4)
- ga("sdfopen %s" % http_file5)
- ga("sdfopen %s" % http_file6)
+ #ga("sdfopen %s" % http_file4)			# HEXG
+ #ga("sdfopen %s" % http_file5)			# HEXG
+ #ga("sdfopen %s" % http_file6)			# HEXG
   
  #Set grads region
  ga("set lat %f %f" % (dims['minlat'],dims['maxlat']))
@@ -333,14 +333,16 @@ def Create_Mask(dims,http_base,Reprocess_Flag):
  Grads_Regrid('mask.1','mask1',dims,'vt')
  Grads_Regrid('mask.2','mask2',dims,'vt')
  Grads_Regrid('mask.3','mask3',dims,'vt')
- Grads_Regrid('precmean.4','pmean',dims,'vt')
- Grads_Regrid('so.5(t=1)','so',dims,'vt')
- ga("mask5 = const(maskout(maskout(pmean,pmean-%f),mask1),1)" % dims['minprec'])
+ #Grads_Regrid('precmean.4','pmean',dims,'vt')		# HEXG
+ #Grads_Regrid('so.5(t=1)','so',dims,'vt')		# HEXG
+ #ga("mask5 = const(maskout(maskout(pmean,pmean-%f),mask1),1)" % dims['minprec'])	# HEXG
  #ga("maskso = maskout(maskout(so,so-%f),mask5)" % dims['minso'])
- ga("maskso = const(maskout(maskout(so,so-%f),mask3),-9.99e+08, -u))" % dims['minso'])
+ #ga("maskso = const(maskout(maskout(so,so-%f),mask3),-9.99e+08, -u))" % dims['minso'])	# HEXG
 
+ # HEXG
+ '''
  #Determine the flow to display
- flwmean = np.ma.getdata(ga.exp("flwmean.6(t=1)"))
+ flwmean = np.ma.getdata(ga.exp("flwmean.6(t=1)"))	
  flwmean = flwmean[flwmean >= 0]
  #pcts = np.linspace(0,100,15)
  pcts = [0,1,5,10,15,20,30,50,70,80,85,90,95,99,100] 
@@ -348,19 +350,22 @@ def Create_Mask(dims,http_base,Reprocess_Flag):
  for pct in pcts:
   flwvals.append(scipy.stats.scoreatpercentile(flwmean,pct))
  dims['flwvals'] = np.unique(np.floor(np.array(flwvals)))
+ '''
+ # HEXG
 
  #Write to file
- fp = Create_NETCDF_File(dims,file,['mask','mask200','maskSO','mask100','maskcs'],['mask','mask200','maskSO','mask100','maskcs'],datetime.datetime(1900,1,1),'days',1)
+ #fp = Create_NETCDF_File(dims,file,['mask','mask200','maskSO','mask100','maskcs'],['mask','mask200','maskSO','mask100','maskcs'],datetime.datetime(1900,1,1),'days',1)
+ fp = Create_NETCDF_File(dims,file,['mask','mask200','mask100'],['mask','mask200','mask100'],datetime.datetime(1900,1,1),'days',1)
  fp.variables['mask'][0] = np.ma.getdata(ga.exp("mask1"))
  fp.variables['mask200'][0] = np.ma.getdata(ga.exp("mask2"))
- fp.variables['maskSO'][0] = np.ma.getdata(ga.exp("maskso"))
- fp.variables['mask100'][0] = np.ma.getdata(ga.exp("mask3"))
- fp.variables['maskcs'][0] = np.ma.getdata(ga.exp("mask5"))
+ #fp.variables['maskSO'][0] = np.ma.getdata(ga.exp("maskso"))	# HEXG
+ fp.variables['mask100'][0] = np.ma.getdata(ga.exp("mask3"))	# HEXG
+ #fp.variables['maskcs'][0] = np.ma.getdata(ga.exp("mask5"))
 
  #Close files 
- ga("close 6")
- ga("close 5")
- ga("close 4")
+ #ga("close 6")		# HEXG
+ #ga("close 5")		# HEXG
+ #ga("close 4")		# HEXG
  ga("close 3")
  ga("close 2")
  ga("close 1")
@@ -600,6 +605,9 @@ def Create_Images(date,dims,dataset,timestep,info,Reprocess_Flag):
   date_tmp = date + t*dt#relativedelta.relativedelta(dt[timestep] = 1)
   (dir_output,date_output) = datetime2outputtime(date_tmp,timestep)
   ga("set time %s" % datetime2gradstime(date_tmp))
+  #Set grads region
+  ga("set lat %f %f" % (dims['minlat'],dims['maxlat']))		# HEXG
+  ga("set lon %f %f" % (dims['minlon'],dims['maxlon']))		# HEXG
   #Create image and colorbars for the Google Maps images
   process = []
   for var in variables:#qh.vars:
@@ -772,6 +780,7 @@ def Create_Image(file,data,cmap,levels,norm,cflag,type):
  #Extract grid info
  lats = data.grid.lat
  lons = data.grid.lon
+ print lons.shape
 
  #Create Basemap instance for Google maps mercator projection
  res = lats[1] - lats[0]
