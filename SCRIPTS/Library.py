@@ -542,7 +542,7 @@ def datetime2outputtime(date,timestep):
 
  return (dir_output,date_output)
 
-def Create_Images(date,dims,dataset,timestep,info,Reprocess_Flag):
+def Create_Images(date,dims,dataset,timestep,info,Reprocess_Flag,global_flag):
 
  ga = grads.GrADS(Bin=grads_exe,Window=False,Echo=False)
  variables = info['variables']
@@ -608,6 +608,9 @@ def Create_Images(date,dims,dataset,timestep,info,Reprocess_Flag):
   #Set grads region
   ga("set lat %f %f" % (dims['minlat'],dims['maxlat']))		# HEXG
   ga("set lon %f %f" % (dims['minlon'],dims['maxlon']))		# HEXG
+  if global_flag:
+    ga("set lat -89.875 89.875")				# HEXG
+    ga("set lon -179.875 179.875")				# HEXG
   #Create image and colorbars for the Google Maps images
   process = []
   for var in variables:#qh.vars:
@@ -788,6 +791,11 @@ def Create_Image(file,data,cmap,levels,norm,cflag,type):
  urcrnrlat = lats[-1]# + res/2
  llcrnrlon = lons[0]# - res/2
  urcrnrlon = lons[-1]# + res/2
+ print	"HELLO"
+ print	llcrnrlat
+ print	urcrnrlat
+ print	llcrnrlon
+ print	urcrnrlon
  tic = time.clock()
  if type == 'Google Maps':
   m = Basemap(llcrnrlat=llcrnrlat,urcrnrlat=urcrnrlat,llcrnrlon=llcrnrlon,urcrnrlon=urcrnrlon,epsg=3857)
@@ -809,6 +817,9 @@ def Create_Image(file,data,cmap,levels,norm,cflag,type):
   cs = m.pcolormesh(lons,lats,data,latlon=True,shading='flat',cmap=cmap, norm=norm)
   if cflag == True:
    cs = m.contourf(lons,lats,data,latlon=True,levels=levels,cmap=cmap,norm=norm)
+   print "DATA"
+   print data.shape
+   print data
   plt.savefig(file,transparent=True)
   plt.close()
  elif type == 'Static':
