@@ -2,13 +2,13 @@
 
 <dimensions>
   <res>0.25</res>
-  <minlat>-89.875</minlat>
-  <minlon>-179.875</minlon>
+  <minlat>-89.76</minlat>
+  <minlon>-179.8</minlon>
   <nlat>720</nlat>
   <nlon>1440</nlon>
-  <izoom>2</izoom>
-  <centerlat>20</centerlat>
-  <centerlon>60</centerlon>
+  <izoom>0</izoom>
+  <centerlat>0</centerlat>
+  <centerlon>0</centerlon>
   <minprec>0.0</minprec>
   <minso>2.0</minso>
   <base>http://stream.princeton.edu:9090/dods/GFDM</base>
