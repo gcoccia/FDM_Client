@@ -374,7 +374,9 @@ def Find_Ensemble_Number(group,timestep,idate,date):
   ga("set t 1")
   idate = gradstime2datetime(ga.exp('prec').grid.time[0])
   if timestep == 'MONTHLY':
-   iensemble = 12*(date.year - idate.year) + max(date.month - idate.month,0) + 1  
+   #iensemble = 12*(date.year - idate.year) + max(date.month - idate.month,0) + 1  
+   rd = relativedelta.relativedelta(date,idate)
+   iensemble = 12*rd.years + rd.months + 1
    nt = 6
   if timestep == 'DAILY':
    iensemble = (date - idate).days + 1
